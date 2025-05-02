@@ -1,0 +1,211 @@
+from application.db_models.models import *
+from werkzeug.security import generate_password_hash
+from datetime import datetime
+
+
+class PrimaryInitialization:
+    @staticmethod
+    def init():
+        UserDBService.create_user("admin", "main@admin.com", "Goodprice",
+                                  generate_password_hash("123456789"), "admin", datetime.now())
+
+        statuses = [
+            # Client-side general statuses
+            {"status_code": 100, "status_message": "new order"},
+            {"status_code": 101, "status_message": "participating, open to editing"},
+            {"status_code": 102, "status_message": "participating, close to editing"},
+            {"status_code": 103, "status_message": "bidding, open to editing"},
+            {"status_code": 104, "status_message": "bidding, close to editing"},
+            {"status_code": 105, "status_message": "bidding finished"},
+            {"status_code": 106, "status_message": "personal orders created"},
+
+            # Admin-side statuses
+            {"status_code": 200, "status_message": "order created, active"},
+            {"status_code": 203, "status_message": "bidding"},
+            {"status_code": 205, "status_message": "finished, personal orders created"},
+
+            # Client-side personal statuses
+            {"status_code": 300, "status_message": "personal order created"},
+            {"status_code": 305, "status_message": "personal order done"},
+        ]
+
+        for status in statuses:
+            status_code = status["status_code"]
+            status_message = status["status_message"]
+            StatusDBService.create_status(status_code, status_message)
+
+
+class UserDBService:
+    @staticmethod
+    def get_user_by_username(username):
+        user = User.query.filter_by(username=username).first()
+        return user
+
+    @staticmethod
+    def get_user_by_id(user_id):
+        user = User.query.filter_by(id=user_id).first()
+        return user
+
+    @staticmethod
+    def get_all_users():
+        users = User.query.filter(User.role != "admin").all()
+        return users
+
+    @staticmethod
+    def create_user(username, email, company, password, role, registration_date):
+        user = User(username=username, email=email, company=company, password=password, role=role,
+                    registration_date=registration_date)
+        user.save()
+        return user
+
+    @staticmethod
+    def check_username_id(username, user_id):
+        user = User.query.filter_by(username=username).first()
+        print(username, user, user_id)
+        return user.id == user_id
+
+    @staticmethod
+    def check_is_admin(user_id):
+        user = User.query.filter_by(id=user_id).first()
+        return user.role == "admin"
+
+    @staticmethod
+    def check_is_admin_by_username(username):
+        user = User.query.filter_by(username=username).first()
+        return user.role == "admin"
+
+    @staticmethod
+    def get_users_company_names_by_order_id(order_id):
+        order = Order.query.filter_by(id=order_id).first()
+        participants = order.participants
+        companies = [{'user_id': participant.user.id, "company_name": participant.user.company} for participant in
+                     participants]
+        return companies
+
+    @staticmethod
+    def delete_user(username):
+        user = User.query.filter_by(username=username).first()
+        user.delete()
+
+
+
+
+class OrderDBService:
+    @staticmethod
+    def create_order(title, description, permitted_providers, participating_providers, status_id, publishing_date):
+        order = Order(title=title, description=description, permitted_providers=permitted_providers,
+                      participating_providers=participating_providers, status_id=status_id,
+                      publishing_date=publishing_date)
+        order.save()
+        return order
+
+    @staticmethod
+    def delete_order(order_id):
+        order = Order.query.filter_by(order_id=order_id).first()
+        order.delete()
+
+    @staticmethod
+    def get_all_orders():
+        orders = Order.query.all()
+        return orders
+
+    @staticmethod
+    def get_order_by_id(order_id):
+        order = Order.query.filter_by(id=order_id).first()
+        return order
+
+    @staticmethod
+    def get_all_participation(username):
+        user = User.query.filter_by(username=username).first()
+        return sorted(user.participants, key=lambda x: x.order.publishing_date, reverse=True)
+
+
+class ItemDBService:
+    @staticmethod
+    def create_item(item_name):
+        item = Item(name=item_name)
+        item.save()
+        return item
+
+    @staticmethod
+    def get_item_by_id(item_id):
+        item = Item.query.filter_by(id=item_id).first()
+        return item
+
+    @staticmethod
+    def get_item_by_name(item_name):
+        item = Item.query.filter_by(name=item_name).first()
+        return item
+
+
+class OrderItemDBService:
+    @staticmethod
+    def create_order_item(order_id, item_id, amount):
+        order_item = OrderItem(order_id=order_id, item_id=item_id, amount=amount)
+        order_item.save()
+        return order_item
+
+
+class OrderParticipantDBService:
+    @staticmethod
+    def create_order_participant(order_id, user_id, status_id):
+        order_participant = OrderParticipant(order_id=order_id, user_id=user_id, status_id=status_id)
+        order_participant.save()
+        return order_participant
+
+    @staticmethod
+    def get_participant(username, order_id):
+        user = UserDBService.get_user_by_username(username)
+        return next((prt for prt in user.participants if prt.order_id == order_id), None)
+
+    @staticmethod
+    def update_participant_status(participant, status_id):
+        participant.status_id = status_id
+        participant.save()
+        return participant
+
+
+class OrderParticipantPriceDBService:
+    @staticmethod
+    def create_order_participant_price(order_participant_id, order_item_id, price, comment=None):
+        order_participant_price = OrderParticipantPrice(order_participant_id=order_participant_id,
+                                                        order_item_id=order_item_id,
+                                                        price=price,
+                                                        comment=comment)
+        order_participant_price.save()
+        return order_participant_price
+
+
+class OrderParticipantLastPriceDBSercice:
+    @staticmethod
+    def create_order_participant_last_price(order_participant_id, price_id):
+        order_participant_last_price = OrderParticipantLastPrice(order_participant_id=order_participant_id,
+                                                                 price_id=price_id)
+        order_participant_last_price.save()
+        return order_participant_last_price
+
+    @staticmethod
+    def update_last_price_price_id(last_price, new_price_id):
+        last_price.price_id = new_price_id
+        last_price.save()
+
+
+class StatusDBService:
+    @staticmethod
+    def create_status(status_code, status_message):
+        status = Status(code=status_code, message=status_message)
+        status.save()
+        return status
+
+    @staticmethod
+    def get_status_by_status_code(status_code):
+        status = Status.query.filter_by(code=status_code).first()
+        return status
+
+
+class PersonalOrderDBService:
+    pass
+
+
+class PersonalOrderPositionDBService:
+    pass

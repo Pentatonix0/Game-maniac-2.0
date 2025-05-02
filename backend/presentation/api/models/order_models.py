@@ -1,0 +1,91 @@
+from flask_restx import Namespace, fields
+
+
+class OrderDTO:
+    namespace = Namespace('order', description="A namespace for orders")
+
+    status_model = namespace.model(
+        "Status",
+        {
+            "id": fields.Integer(),
+            "code": fields.Integer(),
+            "message": fields.String()
+        }
+    )
+
+    item_model = namespace.model(
+        "Item",
+        {
+            "id": fields.Integer(),
+            "name": fields.String()
+        }
+    )
+
+    order_item_model = namespace.model(
+        "OrderItem",
+        {
+            "id": fields.Integer(),
+            "item": fields.Nested(item_model),
+            "amount": fields.Integer()
+        }
+    )
+
+    order_model = namespace.model(
+        "AdminOrder",
+        {
+            "id": fields.Integer(),
+            "title": fields.String(),
+            "description": fields.String(),
+            "status": fields.Nested(status_model),
+            "publishing_date": fields.DateTime(),
+            "permitted_providers": fields.List(fields.Integer()),
+            "participating_providers": fields.List(fields.Integer()),
+            "order_items": fields.List(fields.Nested(order_item_model))
+        }
+    )
+
+    order_preview_model = namespace.model(
+        "OrderPreview",
+        {
+            "id": fields.Integer(),
+            "title": fields.String(),
+            "description": fields.String(),
+            "status": fields.Nested(status_model),
+            "deadline": fields.DateTime()
+        }
+    )
+    order_participant_preview_model = namespace.model(
+        "UserOrder",
+        {
+            "id": fields.Integer(),
+            "user_id": fields.Integer(),
+            "order_id": fields.Integer(),
+            "status": fields.Nested(status_model),
+            "order": fields.Nested(order_preview_model)
+        }
+    )
+
+    order_participant_price_model = namespace.model(
+        "Price",
+        {
+            "order_item": fields.Nested(order_item_model),
+            "price": fields.Fixed(decimals=2),
+            "comment": fields.String()
+        }
+    )
+    order_participant_last_price_model = namespace.model(
+        "LastPrice",
+        {
+            "price": fields.Nested(order_participant_price_model)
+        }
+    )
+
+    order_participant_model = namespace.model(
+        "Participant",
+        {
+            "id": fields.Integer(),
+            "order": fields.Nested(order_preview_model),
+            "status": fields.Nested(status_model),
+            "last_prices": fields.Nested(order_participant_last_price_model)
+        }
+    )

@@ -1,0 +1,155 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useForm } from 'react-hook-form';
+import { FiInfo } from 'react-icons/fi';
+import OrderDetailsTable from '../components/OrderDetailsTable';
+import Loading from '../components/Loading';
+
+const OrderDetail = () => {
+    const { orderId } = useParams();
+    const [order, setOrder] = useState(null);
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [comments, setComments] = useState({});
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm();
+
+    useEffect(() => {
+        const fetchOrderData = async () => {
+            try {
+                const token = JSON.parse(
+                    localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+                );
+                const response = await axios.get(
+                    `/api/order/order/${orderId}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token.access_token}`,
+                        },
+                    }
+                );
+                setOrder(response.data);
+            } catch (error) {
+                console.error('There was an error fetching order data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrderData();
+    }, [orderId]);
+
+    const handleCommentsChange = (newComments) => {
+        setComments(newComments);
+    };
+
+    const onSubmit = async (data) => {
+        const body = {
+            order_id: parseInt(orderId),
+            prices: order.last_prices.reduce((acc, item) => {
+                const itemId = parseInt(item.price?.order_item?.id);
+                acc[itemId] = {
+                    item_id: itemId,
+                    price: parseFloat(data[`price-${itemId}`]) || null,
+                    comment: comments[itemId] || '',
+                };
+                return acc;
+            }, {}),
+        };
+        try {
+            const token = JSON.parse(
+                localStorage.getItem('REACT_TOKEN_AUTH_KEY')
+            );
+            const response = await axios.post(`/api/order/offer_prices`, body, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token.access_token}`,
+                },
+            });
+            console.log('HOME');
+            navigate('/');
+        } catch (error) {
+            console.error('There was an error updating the order:', error);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-5xl">
+                <h1 className="text-3xl font-bold text-white mb-6">
+                    {order && !loading ? order.order.title : 'Loading Order...'}
+                </h1>
+                <div className="bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)]">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loading />
+                        </div>
+                    ) : (
+                        order && (
+                            <form
+                                onSubmit={handleSubmit(onSubmit)}
+                                className="space-y-6"
+                            >
+                                <div className="relative bg-gradient-to-r from-orange-900/20 to-gray-800/80 p-6 rounded-xl border border-orange-600/30 shadow-md animate-fade-in">
+                                    <div className="flex items-start">
+                                        <FiInfo className="text-orange-500 text-2xl mr-3 mt-1 flex-shrink-0" />
+                                        <div>
+                                            <h2 className="text-xl font-semibold text-white mb-2">
+                                                How to Proceed
+                                            </h2>
+                                            <p className="text-sm text-gray-300 leading-relaxed">
+                                                Review the order details in the
+                                                table below. Update the prices
+                                                and add comments for each item
+                                                as needed. When ready, click the{' '}
+                                                <span className="text-orange-400 font-medium">
+                                                    "Submit"
+                                                </span>{' '}
+                                                button to save your changes.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <OrderDetailsTable
+                                    data={order}
+                                    register={register}
+                                    errors={errors}
+                                    onCommentsChange={handleCommentsChange}
+                                />
+                                {order.status !== 102 &&
+                                    order.status !== 104 && (
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className={`w-full sm:w-auto px-9 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white 
+                                                text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
+                                                hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105 focus:ring-2 
+                                                focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] 
+                                                transition-all duration-200 ${
+                                                    isSubmitting
+                                                        ? 'opacity-50 cursor-not-allowed'
+                                                        : ''
+                                                }`}
+                                            aria-label="Submit order changes"
+                                        >
+                                            {isSubmitting
+                                                ? 'Submitting...'
+                                                : 'Submit'}
+                                        </button>
+                                    )}
+                            </form>
+                        )
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default OrderDetail;
