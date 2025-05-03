@@ -12,6 +12,7 @@ import OrderDetails from './OrderDetails';
 import CreateOrder from './CreateOrder';
 import AdminOrderDetailsPage from './AdminOrderDetailsPage';
 import Footer from '../components/Footer';
+import UsersPage from './Users';
 
 const AppRoutes = () => {
     return (
@@ -40,6 +41,14 @@ const AppRoutes = () => {
                 element={
                     <PrivateRoute adminRequired={true}>
                         <AdminOrderDetailsPage />
+                    </PrivateRoute>
+                }
+            />
+            <Route
+                path="/users"
+                element={
+                    <PrivateRoute adminRequired={true}>
+                        <UsersPage />
                     </PrivateRoute>
                 }
             />

@@ -85,9 +85,10 @@ class UserDBService:
     @staticmethod
     def delete_user(username):
         user = User.query.filter_by(username=username).first()
-        user.delete()
-
-
+        if user.role != "admin":
+            user.delete()
+        else:
+            raise
 
 
 class OrderDBService:
@@ -101,7 +102,7 @@ class OrderDBService:
 
     @staticmethod
     def delete_order(order_id):
-        order = Order.query.filter_by(order_id=order_id).first()
+        order = Order.query.filter_by(id=order_id).first()
         order.delete()
 
     @staticmethod

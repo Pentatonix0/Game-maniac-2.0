@@ -50,17 +50,16 @@ class UserService:
             UserDBService.delete_user(username)
             response_object = {
                 'status': 'success',
-                'responce': {'status': 'success', 'message': 'User succesfully deleted'}
-                'code': 200
+                'message': 'User successfully deleted'
             }
-            return response_object
+            return response_object, 200
         except Exception as e:
             print(e)
             response_object = {
                 'status': 'fail',
-                'responce': {'status': 'fail', 'message': 'try'}
+                'message': 'try again'
             }
-            return response_object
+            return response_object, 400
 
 #     @staticmethod
 #     def delete_user(username):

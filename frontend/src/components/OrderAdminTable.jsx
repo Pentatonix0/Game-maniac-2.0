@@ -60,7 +60,7 @@ const DataTable = ({ data, showText = true }) => {
                                     {data.map((pos, index) => (
                                         <tr key={index}>
                                             <td className="border p-2 text-gray-300">
-                                                {pos.name}
+                                                {pos.item.name}
                                             </td>
                                             <td className="border p-2 text-gray-300">
                                                 {pos.amount}

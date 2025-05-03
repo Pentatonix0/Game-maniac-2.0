@@ -17,13 +17,21 @@ class AllUsers(Resource):
             return []
         return users_ns.marshal(users, user_model)
 
+
 @users_ns.route('/delete_user')
 class DeleteUser(Resource):
     @users_ns.doc(params={'username': 'username of the user to delete'})
     @jwt_required()
     @admin_required
     def delete(self):
+        username = request.args.get('username')
 
+        if not username:
+            return {"message": "Username is required"}, 400
+
+        response, code = UserService.delete_user(username)
+
+        return response, code
 
 
 # @users_ns.route('/<string:username>')

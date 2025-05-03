@@ -21,6 +21,22 @@ class CreateAdminOrder(Resource):
     def post(self):
         data = request.json
         return OrderService.create_order(data)
+    
+@order_ns.route('/delete_order')
+class DeleteOrder(Resource):
+    @order_ns.doc(params={'id': 'Id of the order to delete'})
+    @jwt_required()
+    @admin_required
+    def delete(self):
+        id = request.args.get('id')
+
+        if not id:
+            return {"message": "Id is required"}, 400
+
+        response, code = OrderService.delete_order(id)
+
+        return response, code
+
 
 
 @order_ns.route('/get_all_orders')

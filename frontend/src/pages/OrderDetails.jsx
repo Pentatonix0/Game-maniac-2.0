@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
-import { FiInfo } from 'react-icons/fi';
+import { FiInfo, FiAlertCircle } from 'react-icons/fi';
 import OrderDetailsTable from '../components/OrderDetailsTable';
 import Loading from '../components/Loading';
 
@@ -34,6 +34,7 @@ const OrderDetail = () => {
                         },
                     }
                 );
+                console.log(response.data);
                 setOrder(response.data);
             } catch (error) {
                 console.error('There was an error fetching order data:', error);
@@ -78,6 +79,23 @@ const OrderDetail = () => {
             console.error('There was an error updating the order:', error);
         }
     };
+
+    if (!loading && order.id == null) {
+        return (
+            <div className="py-12 flex justify-center">
+                <div className="bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] max-w-md w-full text-center">
+                    <FiAlertCircle className="text-orange-500 text-4xl mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-white mb-2">
+                        Order not found
+                    </h2>
+                    <p className="text-base text-gray-300">
+                        No order data available. Please check the order ID or
+                        return to the order list.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">

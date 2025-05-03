@@ -24,14 +24,9 @@ const InputFieldArrow = React.forwardRef(
             const { value, selectionStart } = e.target;
             const key = e.key;
 
-            if (key === 'Enter') {
-                e.preventDefault(); // Предотвращаем отправку формы
-                return;
-            }
-
             // Разрешаем: цифры, Backspace, Delete, Tab, стрелки
             if (/[0-9]|Backspace|Delete|Tab|Arrow/.test(key)) {
-                return;
+                return; // Разрешаем стандартную обработку
             }
 
             // Разрешаем точку, но только одну и не в начале
@@ -49,6 +44,7 @@ const InputFieldArrow = React.forwardRef(
             if (value === '' || /^[0-9]*\.?[0-9]{0,2}$/.test(value)) {
                 restRegister.onChange(e);
             } else {
+                // Если введено больше 2 знаков после точки, обрезаем
                 const parts = value.split('.');
                 if (parts.length === 2 && parts[1].length > 2) {
                     e.target.value = `${parts[0]}.${parts[1].substring(0, 2)}`;

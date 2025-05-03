@@ -27,6 +27,12 @@ const LoggedInAdminLinks = () => {
                 >
                     Статистика
                 </Link>
+                <Link
+                    className="text-white text-sm hover:underline"
+                    to="/users"
+                >
+                    Пользователи
+                </Link>
             </div>
             <div className="mr-1 flex-shrink-0 ml-auto">
                 <AccountLink />

@@ -55,6 +55,23 @@ class OrderService:
             return response_object, 500
 
     @staticmethod
+    def delete_order(id):
+        try:
+            OrderDBService.delete_order(id)
+            responce_object = {
+                "status": "success",
+                "message": "Order successfully deleted"
+            }
+            return responce_object, 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
+
+    @staticmethod
     def get_all_orders():
         try:
             orders = OrderDBService.get_all_orders()
