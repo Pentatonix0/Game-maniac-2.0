@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
+import { FaCloudDownloadAlt } from 'react-icons/fa';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import OrderAdminTable from '../components/OrderAdminTable';
 import Loading from '../components/Loading';
 import SummaryTable from '../components/SummaryTable';
@@ -11,6 +14,8 @@ const ActiveOrderContent = ({ data = [] }) => {
     const navigate = useNavigate();
     const [companies, setCompanies] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
     const {
         id,
         title,
@@ -31,7 +36,6 @@ const ActiveOrderContent = ({ data = [] }) => {
         defaultValues: { title, description },
     });
 
-    // Handle order deletion with confirmation
     const handleDeleteOrder = async () => {
         const confirmed = window.confirm(
             'Вы уверены, что хотите удалить этот заказ?'
@@ -47,19 +51,35 @@ const ActiveOrderContent = ({ data = [] }) => {
                 },
             });
             if (response.status === 200) {
-                navigate('/'); // Redirect to orders list page after deletion
+                toast.success('Заказ успешно удален', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'dark',
+                });
+                navigate('/');
             }
         } catch (error) {
             console.error('Error deleting order:', error);
+            toast.error('Не удалось удалить заказ', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
         }
     };
 
-    // Handle order update
     const onSubmit = async (formData) => {
         try {
-            console.log({ id, ...formData });
             const response = await axios.put(
-                `/api/order/update_order`,
+                `/api/order/update_order_meta?order_id=${id}`,
                 { id, ...formData },
                 {
                     headers: {
@@ -69,37 +89,110 @@ const ActiveOrderContent = ({ data = [] }) => {
                 }
             );
             if (response.status === 200) {
+                toast.success('Заказ успешно обновлен', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'dark',
+                });
                 setIsEditing(false);
-                // Update local state with new data
                 data.title = formData.title;
                 data.description = formData.description;
             }
         } catch (error) {
             console.error('Error updating order:', error);
+            toast.error('Не удалось обновить заказ', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
         }
     };
 
-    // Toggle edit mode
+    const handleRequestSummary = async () => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get(
+                `/api/order/get_current_order_state?order_id=${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token.access_token}`,
+                    },
+                    responseType: 'blob',
+                }
+            );
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'summary.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success('Сводка успешно скачана', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
+        } catch (error) {
+            console.error('Error fetching summary:', error);
+            toast.error('Не удалось скачать сводку', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const toggleEdit = () => {
         setIsEditing(!isEditing);
-        reset({ title, description }); // Reset form to current values
+        reset({ title, description });
     };
 
     useEffect(() => {
         const getCompany = async () => {
-            const response = await axios.get(`/api/users/companies/${id}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token.access_token}`,
-                },
-            });
-            setCompanies(response.data);
+            try {
+                const response = await axios.get(`/api/users/companies/${id}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token.access_token}`,
+                    },
+                });
+                setCompanies(response.data);
+            } catch (error) {
+                console.error('Error fetching companies:', error);
+                toast.error('Не удалось загрузить данные о поставщиках', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'dark',
+                });
+            }
         };
 
         getCompany();
     }, [permitted_providers]);
 
-    // Format date
     const formattedDate = new Date(publishing_date).toLocaleDateString(
         'ru-RU',
         {
@@ -177,7 +270,7 @@ const ActiveOrderContent = ({ data = [] }) => {
                         </strong>{' '}
                         {description ? `\n${description}` : 'Без описания'}
                     </p>
-                    <p className="text-base font-base text-gray-300 mb-6">
+                    <p className="text-base font-base text-gray-300 mb-4">
                         <strong className="text-base font-base text-white">
                             Статус:
                         </strong>{' '}
@@ -233,6 +326,25 @@ const ActiveOrderContent = ({ data = [] }) => {
                         </table>
                     </div>
                     <SummaryTable />
+                    <div className="mt-6">
+                        <button
+                            onClick={handleRequestSummary}
+                            disabled={isLoading}
+                            className={`w-48 h-12 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-base font-semibold px-6 py-3 rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-600 transition duration-200 flex items-center justify-center space-x-2 ${
+                                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            aria-label="Скачать сводку заказа"
+                        >
+                            {isLoading ? (
+                                <span>Загрузка...</span>
+                            ) : (
+                                <>
+                                    <FaCloudDownloadAlt className="text-lg" />
+                                    <span>Скачать сводку</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                     <div className="flex justify-end mt-6">
                         <button
                             onClick={handleDeleteOrder}
@@ -251,6 +363,7 @@ const AdminOrderDetailsPage = () => {
     const { orderId } = useParams();
     const [orderDetails, setOrderDetails] = useState({});
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const getOrderDetails = async () => {
         const token = JSON.parse(localStorage.getItem('REACT_TOKEN_AUTH_KEY'));
@@ -267,6 +380,15 @@ const AdminOrderDetailsPage = () => {
             setOrderDetails(response.data);
         } catch (error) {
             console.error('Error fetching order details:', error);
+            toast.error('Не удалось загрузить данные о заказе', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
         } finally {
             setLoading(false);
         }
@@ -288,6 +410,28 @@ const AdminOrderDetailsPage = () => {
                 ) : (
                     <ActiveOrderContent data={orderDetails} />
                 )}
+                <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="dark"
+                    toastStyle={{
+                        backgroundColor: '#39393A',
+                        color: '#FFFFFF',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    }}
+                    progressStyle={{
+                        background:
+                            'linear-gradient(to right, #F97316, #F59E0B)',
+                    }}
+                />
             </div>
         </div>
     );

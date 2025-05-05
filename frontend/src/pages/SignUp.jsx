@@ -2,37 +2,27 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 import { login } from '../auth';
 import InputField from '../components/InputField';
 
 const SignUpPage = () => {
     const navigate = useNavigate();
+    const [serverResponse, setServerResponse] = useState('');
+    const [serverError, setServerError] = useState('');
+
     const {
         register,
         handleSubmit,
-        reset,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm();
 
-    // Состояния для полей
-    const [formData, setFormData] = useState({
-        login: '',
-        email: '',
-        company: '',
-        password: '',
-        confirmPassword: '',
-    });
-    const [serverResponse, setServerResponse] = useState('');
-
-    // Функция для обновления состояния
-    const handleChange = (e) => {
-        console.log('ldkow');
-        const { id, value } = e.target;
-        setFormData((prevState) => ({ ...prevState, [id]: value }));
-    };
-
-    // Функция отправки данных
     const onSubmit = async (data) => {
+        if (data.password !== data.confirmPassword) {
+            setServerError('Пароли не совпадают');
+            return;
+        }
+
         const body = {
             username: data.login,
             email: data.email,
@@ -44,28 +34,38 @@ const SignUpPage = () => {
             const response = await axios.post('/api/auth/signup', body, {
                 headers: { 'Content-Type': 'application/json' },
             });
-            setServerResponse(response.data.message);
-            console.log(response.data);
+            setServerResponse(response.data.message || 'Регистрация успешна');
+            setServerError('');
             login(response.data);
-            navigate('/'); // Навигация после успешной регистрации
+            navigate('/');
         } catch (err) {
             console.error('Error:', err);
+            setServerError(err.response?.data?.message || 'Ошибка регистрации');
+            setServerResponse('');
         }
     };
 
-    console.log('sigup');
     return (
         <div className="flex items-center justify-center">
-            <div className="mt-4 max-w-xl w-full bg-[#222224] p-8 shadow-[0px_0px_1px_0px_rgba(255,255,255)] rounded-lg">
-                <h1 className="text-3xl text-white font-base text-center mb-6">
+            <div className="mt-24 mb-24 max-w-md w-full bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] animate-fade-in">
+                <h1 className="text-3xl font-semibold text-white text-center mb-6">
                     Регистрация
                 </h1>
                 {serverResponse && (
-                    <p className="text-green-500 text-sm text-center mt-4">
-                        {serverResponse}
-                    </p>
+                    <div className="flex items-center bg-green-900/20 border border-green-600/30 p-4 rounded-xl mb-6">
+                        <FiCheckCircle className="text-green-500 text-xl mr-3" />
+                        <p className="text-green-500 text-sm">
+                            {serverResponse}
+                        </p>
+                    </div>
                 )}
-                <form onSubmit={handleSubmit(onSubmit)}>
+                {serverError && (
+                    <div className="flex items-center bg-orange-900/20 border border-orange-600/30 p-4 rounded-xl mb-6">
+                        <FiAlertCircle className="text-orange-500 text-xl mr-3" />
+                        <p className="text-orange-500 text-sm">{serverError}</p>
+                    </div>
+                )}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <InputField
                         id="login"
                         label="Логин"
@@ -85,9 +85,9 @@ const SignUpPage = () => {
                                     'Логин не может быть короче 4 символов',
                             },
                         }}
-                        value={formData.login}
-                        onChange={handleChange}
-                        labelTextColor="gray-300"
+                        labelTextColor="gray-200"
+                        inputClassName="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        errorClassName="text-orange-500 text-sm mt-1"
                     />
                     <InputField
                         id="email"
@@ -103,9 +103,9 @@ const SignUpPage = () => {
                                     'Email не может быть длиннее 80 символов',
                             },
                         }}
-                        value={formData.email}
-                        onChange={handleChange}
-                        labelTextColor="gray-300"
+                        labelTextColor="gray-200"
+                        inputClassName="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        errorClassName="text-orange-500 text-sm mt-1"
                     />
                     <InputField
                         id="company"
@@ -114,16 +114,16 @@ const SignUpPage = () => {
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Company обязателен',
+                            required: 'Название компании обязательно',
                             maxLength: {
                                 value: 80,
                                 message:
-                                    'Company не может быть длиннее 80 символов',
+                                    'Название компании не может быть длиннее 80 символов',
                             },
                         }}
-                        value={formData.company}
-                        onChange={handleChange}
-                        labelTextColor="gray-300"
+                        labelTextColor="gray-200"
+                        inputClassName="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        errorClassName="text-orange-500 text-sm mt-1"
                     />
                     <InputField
                         id="password"
@@ -139,9 +139,9 @@ const SignUpPage = () => {
                                     'Пароль не может быть короче 8 символов',
                             },
                         }}
-                        value={formData.password}
-                        onChange={handleChange}
-                        labelTextColor="gray-300"
+                        labelTextColor="gray-200"
+                        inputClassName="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        errorClassName="text-orange-500 text-sm mt-1"
                     />
                     <InputField
                         id="confirmPassword"
@@ -151,24 +151,42 @@ const SignUpPage = () => {
                         errors={errors}
                         validation={{
                             required: 'Подтверждение пароля обязательно',
-                            validate: {
-                                matchesPasswords: (value) =>
-                                    value !== formData.password ||
-                                    'Пароли не совпадают',
-                            },
+                            validate: (value) =>
+                                value ===
+                                    document.getElementById('password').value ||
+                                'Пароли не совпадают',
                         }}
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        labelTextColor="gray-300"
+                        labelTextColor="gray-200"
+                        inputClassName="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        errorClassName="text-orange-500 text-sm mt-1"
                     />
                     <button
                         type="submit"
-                        className="mt-2 w-full p-2 bg-orange-500 text-white rounded-md hover:bg-red-600"
+                        disabled={isSubmitting}
+                        className={`w-full px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 ${
+                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        aria-label="Зарегистрироваться"
                     >
-                        Зарегистрироваться
+                        {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
                     </button>
                 </form>
             </div>
+            <style jsx>{`
+                @keyframes fade-in {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                .animate-fade-in {
+                    animation: fade-in 0.5s ease-out;
+                }
+            `}</style>
         </div>
     );
 };

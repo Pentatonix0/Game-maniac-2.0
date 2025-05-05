@@ -1,5 +1,6 @@
 from datetime import datetime
 from application.services.db_service import *
+from application.services.excel_service import ExcelService
 
 
 class OrderService:
@@ -144,6 +145,7 @@ class OrderService:
                                                                                           price, comment)
                 OrderParticipantLastPriceDBSercice.update_last_price_price_id(last_price, new_price.id)
             OrderParticipantDBService.update_participant_status(participant, new_status.id)
+            OrderParticipantDBService.set_is_participating(participant, True)
             response_object = {
                 'status': 'success',
                 'responce': {'status': 'success'}
@@ -156,3 +158,50 @@ class OrderService:
                 'message': 'Try again'
             }
             return response_object
+
+    @staticmethod
+    def get_current_order_state(order_id):
+        active_participants = OrderParticipantDBService.get_all_active_participants(order_id)
+        order_items = OrderItemDBService.get_all_order_items(order_id)
+        # {prt.user.company: None for prt in active_participants}}
+        summary = {order_item.item.name: {'name': order_item.item.name, 'amount': order_item.amount} for
+                   order_item in
+                   order_items}
+
+        for participant in active_participants:
+            company = participant.user.company
+            user_id = participant.user.id
+            for last_price in participant.last_prices:
+                name = last_price.price.order_item.item.name
+                summary[name][company] = last_price.price.price
+                summary[name][f"comment_{user_id}"] = last_price.price.comment
+        print(summary)
+        summary_excel = list(summary.values())
+        file_stream = ExcelService.make_summary_excel(summary_excel)
+        return file_stream
+
+    @staticmethod
+    def update_order_meta(order_id, data):
+        try:
+            title = data.get('title')
+            description = data.get('description')
+            OrderDBService.update_order_meta(order_id, title, description)
+
+            responce_object = {
+                "status": "success",
+                "message": "Order meta updated deleted"
+            }
+
+            return responce_object, 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
+
+
+
+
+

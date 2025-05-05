@@ -120,6 +120,14 @@ class OrderDBService:
         user = User.query.filter_by(username=username).first()
         return sorted(user.participants, key=lambda x: x.order.publishing_date, reverse=True)
 
+    @staticmethod
+    def update_order_meta(order_id, title, description):
+        order = Order.query.filter_by(id=order_id).first()
+        order.title = title
+        order.description = description
+        order.save()
+        return order
+
 
 class ItemDBService:
     @staticmethod
@@ -146,6 +154,11 @@ class OrderItemDBService:
         order_item.save()
         return order_item
 
+    @staticmethod
+    def get_all_order_items(order_id):
+        order = OrderDBService.get_order_by_id(order_id)
+        return order.order_items
+
 
 class OrderParticipantDBService:
     @staticmethod
@@ -164,6 +177,17 @@ class OrderParticipantDBService:
         participant.status_id = status_id
         participant.save()
         return participant
+
+    @staticmethod
+    def set_is_participating(participant, is_paricipating):
+        participant.is_participating = is_paricipating
+        participant.save()
+        return participant
+
+    @staticmethod
+    def get_all_active_participants(order_id):
+        order = OrderDBService.get_order_by_id(order_id)
+        return [prt for prt in order.participants if prt.is_participating]
 
 
 class OrderParticipantPriceDBService:

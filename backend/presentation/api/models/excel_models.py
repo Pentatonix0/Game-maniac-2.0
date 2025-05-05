@@ -6,8 +6,6 @@ class ExcelDTO:
         "Item",
         {
             "name": fields.String(),
-            "amount": fields.Integer(),
-            "price": fields.Integer(),
-            "rating": fields.Integer()
+            "amount": fields.Integer()
         }
     )

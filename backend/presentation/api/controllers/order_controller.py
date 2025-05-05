@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, send_file
 from flask_restx import Resource
 from presentation.api.models.order_models import OrderDTO
 from application.services.order_service import OrderService
@@ -21,7 +21,8 @@ class CreateAdminOrder(Resource):
     def post(self):
         data = request.json
         return OrderService.create_order(data)
-    
+
+
 @order_ns.route('/delete_order')
 class DeleteOrder(Resource):
     @order_ns.doc(params={'id': 'Id of the order to delete'})
@@ -36,7 +37,6 @@ class DeleteOrder(Resource):
         response, code = OrderService.delete_order(id)
 
         return response, code
-
 
 
 @order_ns.route('/get_all_orders')
@@ -74,6 +74,22 @@ class GetOrderContent(Resource):
         username = get_jwt_identity()
         return OrderService.get_user_order_content(username, order_id)
 
+
+@order_ns.route('/update_order_meta')
+class UpdateOrderMeta(Resource):
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def put(self):
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return {"message": "Id is required"}, 400
+        data = request.json
+        response, code = OrderService.update_order_meta(order_id, data)
+
+        return response, code
+
+
 @order_ns.route('/offer_prices')
 class GetOrderContent(Resource):
     @jwt_required()
@@ -84,6 +100,24 @@ class GetOrderContent(Resource):
         if responce_object["status"] == "success":
             return responce_object["responce"], 201
         return responce_object, 400
+
+
+@order_ns.route('/get_current_order_state')
+class GetCurrentOrderState(Resource):
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def get(self):
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return {"message": "Id is required"}, 400
+        file_stream = OrderService.get_current_order_state(order_id)
+        return send_file(
+            file_stream,
+            as_attachment=True,
+            download_name='summary.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
 
 # @order_ns.route('/<string:username>/order/<int:order_id>')
 # class UserOrderContent(Resource):

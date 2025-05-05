@@ -84,6 +84,7 @@ class OrderParticipant(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="CASCADE"))
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete="CASCADE"))
     status_id = db.Column(db.Integer, db.ForeignKey('statuses.id', ondelete="CASCADE"))
+    is_participating = db.Column(db.Boolean, default = False)
     deadline = db.Column(db.DateTime)
 
     # Связи с каскадным удалением
