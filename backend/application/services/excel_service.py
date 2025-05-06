@@ -11,7 +11,8 @@ class ExcelService:
             order_data = []
             for index, row in df.iterrows():
                 row_dict = row.to_dict()
-                order_data.append(row_dict)
+                if row_dict['amount'] != 0:
+                    order_data.append(row_dict)
             return order_data
         except Exception as e:
             print(e)

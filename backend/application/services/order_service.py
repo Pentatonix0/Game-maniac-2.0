@@ -1,6 +1,7 @@
-from datetime import datetime
 from application.services.db_service import *
 from application.services.excel_service import ExcelService
+from datetime import datetime
+import dateutil.parser
 
 
 class OrderService:
@@ -40,7 +41,8 @@ class OrderService:
                 for order_item in order.order_items:
                     price = OrderParticipantPriceDBService.create_order_participant_price(participant.id, order_item.id,
                                                                                           price=None)
-                    OrderParticipantLastPriceDBSercice.create_order_participant_last_price(participant.id, price.id)
+                    OrderParticipantLastPriceDBSercice.create_order_participant_last_price(participant.id, price.id,
+                                                                                           order_item.id)
             response_object = {
                 'status': 'success',
                 'message': 'Order successfully created'
@@ -56,9 +58,9 @@ class OrderService:
             return response_object, 500
 
     @staticmethod
-    def delete_order(id):
+    def delete_order(order_id):
         try:
-            OrderDBService.delete_order(id)
+            OrderDBService.delete_order(order_id)
             responce_object = {
                 "status": "success",
                 "message": "Order successfully deleted"
@@ -89,7 +91,8 @@ class OrderService:
     @staticmethod
     def get_all_user_participation(username):
         try:
-            participation = OrderDBService.get_all_participation(username)
+            participation = [prt for prt in OrderDBService.get_all_participation(username) if
+                             prt.status.code not in [111]]
             response_object = {
                 "status": "success",
                 "response": participation
@@ -124,7 +127,7 @@ class OrderService:
         except Exception as e:
             print(e)
             response_object = {
-                "status": "success",
+                "status": "fail",
                 "response": {}
             }
             return response_object, 500
@@ -163,7 +166,6 @@ class OrderService:
     def get_current_order_state(order_id):
         active_participants = OrderParticipantDBService.get_all_active_participants(order_id)
         order_items = OrderItemDBService.get_all_order_items(order_id)
-        # {prt.user.company: None for prt in active_participants}}
         summary = {order_item.item.name: {'name': order_item.item.name, 'amount': order_item.amount} for
                    order_item in
                    order_items}
@@ -175,7 +177,6 @@ class OrderService:
                 name = last_price.price.order_item.item.name
                 summary[name][company] = last_price.price.price
                 summary[name][f"comment_{user_id}"] = last_price.price.comment
-        print(summary)
         summary_excel = list(summary.values())
         file_stream = ExcelService.make_summary_excel(summary_excel)
         return file_stream
@@ -201,7 +202,56 @@ class OrderService:
             }
             return response_object, 500
 
+    @staticmethod
+    def get_all_order_participants(order_id):
+        try:
+            participants = [prt for prt in OrderParticipantDBService.get_all_active_participants(order_id) if
+                            prt.status.code not in [111]]
+            return participants, 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
 
+    @staticmethod
+    def start_bidding(order_id, data):
+        try:
 
+            deadline = data.get('deadline')
+            deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+            order = OrderDBService.get_order_by_id(order_id)
+            new_order_status = StatusDBService.get_status_by_status_code(203)
+            new_participant_status = StatusDBService.get_status_by_status_code(103)
+            suspended_status = StatusDBService.get_status_by_status_code(111)
+            OrderDBService.set_order_status(order, new_order_status)
+            items = order.order_items
+            for item in items:
+                last_prices = item.last_prices
+                lowest_last_price = min(
+                    [lp for lp in last_prices if lp.price.price and lp.price.price not in [None, 0]],
+                    key=lambda x: x.price.price)
+                OrderParticipantPriceDBService.set_is_the_best_price(lowest_last_price.price, True)
+            # bidding_participants = [prt for prt in order.participants if prt.status.code != 100]
+            for participant in order.participants:
+                if participant.status.code == 100:
+                    OrderParticipantDBService.set_participant_status(participant, suspended_status)
+                else:
+                    OrderParticipantDBService.set_participant_status(participant, new_participant_status)
+                    OrderParticipantDBService.set_participant_deadline(participant, deadline)
 
+            responce_object = {
+                "status": "success",
+                "message": "Bidding started "
+            }
 
+            return responce_object, 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500

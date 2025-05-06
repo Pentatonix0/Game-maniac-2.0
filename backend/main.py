@@ -9,13 +9,13 @@ from presentation.api.controllers.auth_controller import auth_ns
 from presentation.api.controllers.user_controller import users_ns
 from presentation.api.controllers.excel_controller import excel_ns
 from application.services.db_service import PrimaryInitialization
-from config import DevConfig as config
+from config import DevConfig as Config
 from threading import Lock
 
 init_lock = Lock()
 
 app = Flask(__name__)
-app.config.from_object(config)
+app.config.from_object(Config)
 app.config['JSON_AS_ASCII'] = False
 
 CORS(app, origins="http://localhost:5173")

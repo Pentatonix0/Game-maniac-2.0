@@ -14,17 +14,22 @@ const ProviderCard = ({
     const padNumber = (num) => num.toString().padStart(2, '0');
 
     useEffect(() => {
-        if (!bidding_deadline) return;
+        if (!bidding_deadline) {
+            setTimeLeft('');
+            return;
+        }
 
-        const deadlineDate = new Date(bidding_deadline);
+        // Предполагаем, что дедлайн в UTC, добавляем 'Z' для явного указания
+        const deadlineDate = new Date(bidding_deadline + 'Z');
 
         const timer = setInterval(() => {
-            const now = new Date().getTime();
+            const now = new Date();
             const distance = deadlineDate - now;
 
             if (distance < 0) {
                 clearInterval(timer);
-                setTimeLeft('');
+                setTimeLeft('The deadline has expired');
+                reset();
                 return;
             }
 
@@ -46,12 +51,12 @@ const ProviderCard = ({
 
     return (
         <div
-            className="bg-[#39393A] p-6 rounded-xl border border-gray-600 w-162 h-54 flex flex-col hover:scale-[1.02] hover:shadow-[0_0_8px_rgba(209,209,209,0.5)] transition-all duration-300 animate-slide-in"
+            className="bg-[#39393A] p-6 rounded-xl border border-gray-600 w-162 h-54 flex flex-col hover:scale-[1.02] hover:shadow-[0_0_8px_rgba(209,209,209,0.5)] transition-all duration-300 animate-slide-in box-border"
             aria-label={`Order ${title}`}
         >
             <div className="flex justify-between">
-                <div>
-                    <h2 className="text-xl font-base text-[#d1d1d1] mb-4 animate-fade-in">
+                <div className="w-full">
+                    <h2 className="text-xl font-base text-[#d1d1d1] mb-4 animate-fade-in break-words overflow-hidden">
                         {title}
                     </h2>
                 </div>
@@ -72,7 +77,7 @@ const ProviderCard = ({
                     )}
                 </div>
             </div>
-            <p className="text-sm text-gray-500 mb-6 flex-grow whitespace-pre-line animate-fade-in">
+            <p className="text-sm text-gray-500 mb-6 flex-grow animate-fade-in break-words overflow-auto max-h-24">
                 {description}
             </p>
             <IsPartisipating orderId={orderId} status={status} />
@@ -83,13 +88,13 @@ const ProviderCard = ({
 const AdminCard = ({ orderId, title, description }) => {
     return (
         <div
-            className="bg-[#39393A] p-6 rounded-xl border border-gray-600 w-162 h-54 flex flex-col hover:scale-[1.02] hover:shadow-[0_0_8px_rgba(209,209,209,0.5)] transition-all duration-300 animate-slide-in"
+            className="bg-[#39393A] p-6 rounded-xl border border-gray-600 w-162 h-54 flex flex-col hover:scale-[1.02] hover:shadow-[0_0_8px_rgba(209,209,209,0.5)] transition-all duration-300 animate-slide-in box-border"
             aria-label={`Order ${title}`}
         >
-            <h2 className="text-lg font-semibold text-[#d1d1d1] mb-4 animate-fade-in">
+            <h2 className="text-lg font-semibold text-[#d1d1d1] mb-4 animate-fade-in break-words overflow-hidden">
                 {title}
             </h2>
-            <p className="text-sm text-gray-500 mb-6 flex-grow whitespace-pre-line animate-fade-in">
+            <p className="text-sm text-gray-500 mb-6 flex-grow animate-fade-in break-words overflow-auto max-h-24">
                 {description}
             </p>
             <div className="flex justify-end mt-auto">

@@ -7,6 +7,7 @@ Client-side general statuses
 104 - bidding, close to editing
 105 - bidding finished
 106 - personal orders created
+111 - suspended from the order
 
 
 Admin-side statuses

@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { FiInfo, FiAlertCircle } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import OrderDetailsTable from '../components/OrderDetailsTable';
 import Loading from '../components/Loading';
 
@@ -34,7 +36,6 @@ const OrderDetail = () => {
                         },
                     }
                 );
-                console.log(response.data);
                 setOrder(response.data);
             } catch (error) {
                 console.error('There was an error fetching order data:', error);
@@ -73,10 +74,29 @@ const OrderDetail = () => {
                     Authorization: `Bearer ${token.access_token}`,
                 },
             });
-            console.log('HOME');
-            navigate('/');
+            if (response.status === 200) {
+                toast.success('Prices succesfully submitted', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'dark',
+                });
+                navigate('/');
+            }
         } catch (error) {
             console.error('There was an error updating the order:', error);
+            toast.error('Failed to send prices', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
         }
     };
 

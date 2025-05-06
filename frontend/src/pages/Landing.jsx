@@ -13,6 +13,7 @@ import CreateOrder from './CreateOrder';
 import AdminOrderDetailsPage from './AdminOrderDetailsPage';
 import Footer from '../components/Footer';
 import UsersPage from './Users';
+import Error404 from '../components/Error404';
 
 const AppRoutes = () => {
     return (
@@ -52,6 +53,7 @@ const AppRoutes = () => {
                     </PrivateRoute>
                 }
             />
+            <Route path="*" element={<Error404 />} />
         </Routes>
     );
 };

@@ -131,28 +131,6 @@ const CreateOrder = () => {
     return (
         <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="bg-[#222224] w-full max-w-4xl p-8 rounded-lg shadow-[0px_0px_1px_0px_rgba(255,255,255)]">
-                <ToastContainer
-                    position="top-right"
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="dark"
-                    toastStyle={{
-                        backgroundColor: '#39393A',
-                        color: '#FFFFFF',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    }}
-                    progressStyle={{
-                        background:
-                            'linear-gradient(to right, #F97316, #F59E0B)',
-                    }}
-                />
                 <h1 className="text-3xl font-base text-white text-center mb-4">
                     Создание нового заказа
                 </h1>
@@ -178,7 +156,7 @@ const CreateOrder = () => {
                             },
                         }}
                         className="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                        labelTextColor="text-white"
+                        labelTextColor="white"
                     />
                     <div className="space-y-2">
                         <label

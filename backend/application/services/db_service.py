@@ -18,6 +18,7 @@ class PrimaryInitialization:
             {"status_code": 104, "status_message": "bidding, close to editing"},
             {"status_code": 105, "status_message": "bidding finished"},
             {"status_code": 106, "status_message": "personal orders created"},
+            {"status_code": 111, "status_message": "suspended from the order"},
 
             # Admin-side statuses
             {"status_code": 200, "status_message": "order created, active"},
@@ -128,6 +129,12 @@ class OrderDBService:
         order.save()
         return order
 
+    @staticmethod
+    def set_order_status(order, status):
+        order.status = status
+        order.save()
+        return order
+
 
 class ItemDBService:
     @staticmethod
@@ -187,8 +194,24 @@ class OrderParticipantDBService:
     @staticmethod
     def get_all_active_participants(order_id):
         order = OrderDBService.get_order_by_id(order_id)
-        return [prt for prt in order.participants if prt.is_participating]
+        return [prt for prt in order.participants if prt.status.code != 100]
 
+    # @staticmethod
+    # def delete_unactive_participants(order):
+    #     participants = order.participants
+    #     for participant in participants:
+    #         if participants.status.code == 100:
+    #             participant.delete()
+
+    @staticmethod
+    def set_participant_status(participant, status):
+        participant.status = status
+        participant.save()
+
+    @staticmethod
+    def set_participant_deadline(participant, deadline):
+        participant.deadline = deadline
+        participant.save()
 
 class OrderParticipantPriceDBService:
     @staticmethod
@@ -200,12 +223,17 @@ class OrderParticipantPriceDBService:
         order_participant_price.save()
         return order_participant_price
 
+    @staticmethod
+    def set_is_the_best_price(price, value):
+        price.is_the_best_price = value
+        price.save()
+
 
 class OrderParticipantLastPriceDBSercice:
     @staticmethod
-    def create_order_participant_last_price(order_participant_id, price_id):
+    def create_order_participant_last_price(order_participant_id, price_id, order_item_id):
         order_participant_last_price = OrderParticipantLastPrice(order_participant_id=order_participant_id,
-                                                                 price_id=price_id)
+                                                                 price_id=price_id, order_item_id=order_item_id)
         order_participant_last_price.save()
         return order_participant_last_price
 

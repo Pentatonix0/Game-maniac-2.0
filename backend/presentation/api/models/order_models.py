@@ -1,4 +1,5 @@
 from flask_restx import Namespace, fields
+from presentation.api.models.user_models import UserDTO
 
 
 class OrderDTO:
@@ -44,6 +45,7 @@ class OrderDTO:
         }
     )
 
+
     order_preview_model = namespace.model(
         "OrderPreview",
         {
@@ -61,7 +63,19 @@ class OrderDTO:
             "user_id": fields.Integer(),
             "order_id": fields.Integer(),
             "status": fields.Nested(status_model),
-            "order": fields.Nested(order_preview_model)
+            "order": fields.Nested(order_preview_model),
+            "deadline": fields.DateTime()
+        }
+    )
+    order_participant_status_model = namespace.model(
+        "ParticipantStatus",
+        {
+            "id": fields.Integer(),
+            "user_id": fields.Integer(),
+            "order_id": fields.Integer(),
+            "user":fields.Nested(UserDTO.user_model),
+            "status": fields.Nested(status_model),
+
         }
     )
 
@@ -70,6 +84,7 @@ class OrderDTO:
         {
             "order_item": fields.Nested(order_item_model),
             "price": fields.Fixed(decimals=2),
+            "is_the_best_price": fields.Boolean(),
             "comment": fields.String()
         }
     )
@@ -87,5 +102,20 @@ class OrderDTO:
             "order": fields.Nested(order_preview_model),
             "status": fields.Nested(status_model),
             "last_prices": fields.Nested(order_participant_last_price_model)
+        }
+    )
+
+    admin_order_model = namespace.model(
+        "AdminOrder",
+        {
+            "id": fields.Integer(),
+            "title": fields.String(),
+            "description": fields.String(),
+            "status": fields.Nested(status_model),
+            "publishing_date": fields.DateTime(),
+            "permitted_providers": fields.List(fields.Integer()),
+            "participating_providers": fields.List(fields.Integer()),
+            "participants": fields.List(fields.Nested(order_participant_status_model)),
+            "order_items": fields.List(fields.Nested(order_item_model))
         }
     )

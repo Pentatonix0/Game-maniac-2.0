@@ -8,9 +8,10 @@ from presentation.api.decorators.admin_required import admin_required
 order_ns = OrderDTO.namespace
 order_participant_model = OrderDTO.order_participant_model
 order_model = OrderDTO.order_model
+admin_order_model = OrderDTO.admin_order_model
 order_participant_preview_model = OrderDTO.order_participant_preview_model
-order_participant_model = OrderDTO.order_participant_model
 order_preview_model = OrderDTO.order_preview_model
+order_participant_status_model = OrderDTO.order_participant_status_model
 
 
 @order_ns.route('/create_admin_order')
@@ -29,12 +30,12 @@ class DeleteOrder(Resource):
     @jwt_required()
     @admin_required
     def delete(self):
-        id = request.args.get('id')
+        order_id = request.args.get('id')
 
-        if not id:
+        if not order_id:
             return {"message": "Id is required"}, 400
 
-        response, code = OrderService.delete_order(id)
+        response, code = OrderService.delete_order(order_id)
 
         return response, code
 
@@ -61,7 +62,7 @@ class GetAllUserOrderParticipation(Resource):
 
 @order_ns.route('/admin_order/<int:order_id>')
 class GetAdminOrderContent(Resource):
-    @order_ns.marshal_with(order_model)
+    @order_ns.marshal_with(admin_order_model)
     def get(self, order_id):
         return OrderService.get_admin_order_content(order_id)
 
@@ -98,7 +99,7 @@ class GetOrderContent(Resource):
         data = request.json
         responce_object = OrderService.offer_price(username, data)
         if responce_object["status"] == "success":
-            return responce_object["responce"], 201
+            return responce_object["responce"], 200
         return responce_object, 400
 
 
@@ -119,20 +120,29 @@ class GetCurrentOrderState(Resource):
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
 
-# @order_ns.route('/<string:username>/order/<int:order_id>')
-# class UserOrderContent(Resource):
-#     @order_ns.marshal_with(user_order_model)
-#     def get(self, username, order_id):
-#         return UserOrderService.get_user_order_content(username, order_id)
-#
-#     @order_ns.expect(user_order_model)
-#     def put(self, username, order_id):
-#         data = request.json
-#         return UserOrderService.set_user_prices(username, order_id, data)
-#
-# @order_ns.route('/<string:username>')
-# class GetUserOrdersPreview(Resource):
-#     @order_ns.marshal_list_with(user_order_preview_model)
-#     # @jwt_required()
-#     def get(self, username):
-#         return UserOrderService.get_user_orders_preview(username)
+
+@order_ns.route('/get_all_order_participants')
+class GetAllOrderParticipants(Resource):
+    @order_ns.marshal_list_with(order_participant_status_model)
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def get(self):
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return {"message": "Id is required"}, 400
+        responce, code = OrderService.get_all_order_participants(order_id)
+        return responce, code
+
+@order_ns.route('/start_bidding')
+class StartBidding(Resource):
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def post(self):
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return {"message": "Id is required"}, 400
+        data = request.json
+        responce, code = OrderService.start_bidding(order_id, data)
+        return responce, code

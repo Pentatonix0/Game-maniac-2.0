@@ -30,7 +30,6 @@ const LoggedInUserContent = () => {
     useEffect(() => {
         getAllOrders(); // Загружаем данные при монтировании компонента УБРАЛ []
     }, []);
-    console.log(orders);
     return (
         <div className="flex flex-col max-w-7xl mx-auto px-20 py-8">
             <h1 className="text-2xl px-3 font-base font mb-2 text-white">
