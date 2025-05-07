@@ -99,7 +99,6 @@ class OrderParticipantPrice(BaseModel):
     order_participant_id = db.Column(db.Integer, db.ForeignKey('order_participants.id', ondelete="CASCADE"))
     order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id', ondelete="CASCADE"))
     price = db.Column(db.Numeric(10, 2), default=None)
-    is_the_best_price = db.Column(db.Boolean, default=None)
     comment = db.Column(db.Text)
 
     # Связи с каскадным удалением
@@ -117,6 +116,7 @@ class OrderParticipantLastPrice(BaseModel):
     order_participant_id = db.Column(db.Integer, db.ForeignKey('order_participants.id', ondelete="CASCADE"))
     price_id = db.Column(db.Integer, db.ForeignKey('order_participants_prices.id', ondelete="CASCADE"))
     order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id', ondelete="CASCADE"))
+    is_the_best_price = db.Column(db.Boolean, default=None)
 
     # Связи с каскадным удалением
     participant = db.relationship("OrderParticipant", back_populates="last_prices")

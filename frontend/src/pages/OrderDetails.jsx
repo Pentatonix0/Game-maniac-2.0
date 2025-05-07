@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { toast } from 'react-toastify';
@@ -37,6 +38,7 @@ const OrderDetail = () => {
                     }
                 );
                 setOrder(response.data);
+                console.log(response.data);
             } catch (error) {
                 console.error('There was an error fetching order data:', error);
             } finally {
@@ -160,12 +162,13 @@ const OrderDetail = () => {
                                     errors={errors}
                                     onCommentsChange={handleCommentsChange}
                                 />
-                                {order.status !== 102 &&
-                                    order.status !== 104 && (
-                                        <button
-                                            type="submit"
-                                            disabled={isSubmitting}
-                                            className={`w-full sm:w-auto px-9 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white 
+                                {order.status.code !== 102 &&
+                                order.status.code !== 105 &&
+                                order.status.code !== 106 ? (
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className={`w-full sm:w-auto px-9 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white 
                                                 text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
                                                 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105 focus:ring-2 
                                                 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] 
@@ -174,13 +177,29 @@ const OrderDetail = () => {
                                                         ? 'opacity-50 cursor-not-allowed'
                                                         : ''
                                                 }`}
-                                            aria-label="Submit order changes"
+                                        aria-label="Submit order changes"
+                                    >
+                                        {isSubmitting
+                                            ? 'Submitting...'
+                                            : 'Submit'}
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className={`w-full sm:w-auto bg-gradient-to-r from-orange-600 to-orange-500 text-white 
+                                                text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
+                                                hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105
+                                                transition-all duration-200`}
+                                        aria-label="Submit order changes"
+                                    >
+                                        <Link
+                                            to="/"
+                                            className="w-full px-9 py-3 h-full block text-center"
                                         >
-                                            {isSubmitting
-                                                ? 'Submitting...'
-                                                : 'Submit'}
-                                        </button>
-                                    )}
+                                            Back
+                                        </Link>
+                                    </button>
+                                )}
                             </form>
                         )
                     )}

@@ -134,6 +134,7 @@ class GetAllOrderParticipants(Resource):
         responce, code = OrderService.get_all_order_participants(order_id)
         return responce, code
 
+
 @order_ns.route('/start_bidding')
 class StartBidding(Resource):
     @order_ns.doc(params={'id': 'Id of the order'})
@@ -145,4 +146,40 @@ class StartBidding(Resource):
             return {"message": "Id is required"}, 400
         data = request.json
         responce, code = OrderService.start_bidding(order_id, data)
+        return responce, code
+
+
+@order_ns.route('/set_participant_status')
+class SetParticipantStatus(Resource):
+    @jwt_required()
+    def post(self):
+        data = request.json
+        username = get_jwt_identity()
+        responce, code = OrderService.set_participant_status(username, data)
+        return responce, code
+
+@order_ns.route('/update_deadline')
+class StartBidding(Resource):
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def put(self):
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return {"message": "Id is required"}, 400
+        data = request.json
+        responce, code = OrderService.update_order_deadline(order_id, data)
+        return responce, code
+
+@order_ns.route('/update_participant_deadline')
+class StartBidding(Resource):
+    @order_ns.doc(params={'id': 'Id of the participant'})
+    @jwt_required()
+    @admin_required
+    def put(self):
+        participant_id = request.args.get('participant_id')
+        if not participant_id:
+            return {"message": "Id is required"}, 400
+        data = request.json
+        responce, code = OrderService.update_participant_deadline(participant_id, data)
         return responce, code

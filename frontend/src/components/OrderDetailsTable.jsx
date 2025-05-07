@@ -59,6 +59,16 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
     const renderTableRow = (item, index, isEditable = false) => {
         const itemId = item.price?.order_item?.id || index;
         const hasComment = !!comments[itemId];
+        const isBestPrice = item.is_the_best_price;
+
+        // Условные классы для фона ячейки Price при isEditable
+        const priceCellBgClass = isEditable
+            ? isBestPrice === true
+                ? 'bg-[#4ADE80]/30'
+                : isBestPrice === false
+                ? 'bg-[#FAED27]/50'
+                : ''
+            : '';
 
         return (
             <tr key={index} className="animate-fade-in">
@@ -68,7 +78,7 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                 <td className="border p-2 text-gray-200">
                     {item.amount || item.price?.order_item?.amount}
                 </td>
-                <td className="border p-2 text-gray-800 max-w-[150px]">
+                <td className={`border p-2 max-w-[150px] ${priceCellBgClass}`}>
                     {isEditable ? (
                         <InputFieldArrow
                             id={`price-${itemId}`}
@@ -96,32 +106,45 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                             ref={(el) => (inputRefs.current[index] = el)}
                         />
                     ) : (
-                        item.price
+                        <div className="text-gray-200">
+                            {item.price?.price
+                                ? parseFloat(item.price?.price)
+                                : null}
+                        </div>
                     )}
                 </td>
-                <td className="border p-2 text-center">
-                    <button
-                        type="button"
-                        onClick={() =>
-                            handleAddComment({ ...item, id: itemId })
-                        }
-                        className={`px-2 py- text-white text-sm rounded-md font-medium ${
-                            hasComment
-                                ? 'bg-teal-600 hover:bg-teal-700 hover:shadow-[0_0_6px_rgba(13,148,136,0.6)] hover:scale-101'
-                                : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-[0_0_6px_rgba(99,102,241,0.6)] hover:scale-101'
-                        } focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#39393A] ${
-                            hasComment
-                                ? 'focus:ring-teal-400'
-                                : 'focus:ring-indigo-400'
-                        } transition-all duration-200`}
-                        aria-label={
-                            hasComment
-                                ? 'Edit comment for item'
-                                : 'Add comment for item'
-                        }
-                    >
-                        {hasComment ? 'Edit comment' : 'Add comment'}
-                    </button>
+                <td className="border p-2 text-center max-w-[150px]">
+                    {isEditable ? (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                handleAddComment({ ...item, id: itemId })
+                            }
+                            className={`px-2 py-1 text-white text-sm rounded-md font-medium ${
+                                hasComment
+                                    ? 'bg-teal-600 hover:bg-teal-700 hover:shadow-[0_0_6px_rgba(13,148,136,0.6)] hover:scale-101'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-[0_0_6px_rgba(99,102,241,0.6)] hover:scale-101'
+                            } focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#39393A] ${
+                                hasComment
+                                    ? 'focus:ring-teal-400'
+                                    : 'focus:ring-indigo-400'
+                            } transition-all duration-200`}
+                            aria-label={
+                                hasComment
+                                    ? 'Edit comment for item'
+                                    : 'Add comment for item'
+                            }
+                        >
+                            {hasComment ? 'Edit comment' : 'Add comment'}
+                        </button>
+                    ) : (
+                        <div
+                            className="text-xs text-left text-gray-200 break-words"
+                            title={item.price?.comment}
+                        >
+                            {item.price?.comment || ''}
+                        </div>
+                    )}
                 </td>
             </tr>
         );
@@ -131,12 +154,13 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
         case 100:
         case 101:
         case 103:
+        case 104:
             return (
                 <div className="animate-slide-in">
                     <h3 className="text-xl font-medium text-[#FFFFFF] mb-4">
                         Products from the order
                     </h3>
-                    <table className="min-w-full border-collapse">
+                    <table className="min-w-full border-collapse table-fixed">
                         <thead>
                             <tr>
                                 <th className="border p-2 text-gray-200">
@@ -170,12 +194,14 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                 </div>
             );
         case 102:
+        case 105:
+        case 106:
             return (
                 <div className="animate-slide-in">
                     <h3 className="text-xl font-medium text-[#FFFFFF] mb-4">
                         Products from the order
                     </h3>
-                    <table className="min-w-full border-collapse">
+                    <table className="min-w-full border-collapse table-fixed">
                         <thead>
                             <tr>
                                 <th className="border p-2 text-gray-200">
@@ -188,13 +214,13 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                                     Price
                                 </th>
                                 <th className="border p-2 text-gray-200 text-center">
-                                    Actions
+                                    Comment
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {data.data.map((item, index) =>
-                                renderTableRow(item, index)
+                            {data.last_prices.map((last_price, index) =>
+                                renderTableRow(last_price, index)
                             )}
                         </tbody>
                     </table>

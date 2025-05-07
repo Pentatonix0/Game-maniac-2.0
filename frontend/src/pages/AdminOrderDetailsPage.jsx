@@ -2,21 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useForm } from 'react-hook-form';
-import { FaCloudDownloadAlt, FaPlay } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import OrderAdminTable from '../components/OrderAdminTable';
+import OrderActions from '../components/OrderActions';
 import Loading from '../components/Loading';
 
 const ActiveOrderContent = ({ data = [] }) => {
     const token = JSON.parse(localStorage.getItem('REACT_TOKEN_AUTH_KEY'));
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isBiddingModalOpen, setIsBiddingModalOpen] = useState(false);
-    const [deadline, setDeadline] = useState('');
-    const [deadlineError, setDeadlineError] = useState('');
-
+    console.log(data);
     const {
         id,
         title,
@@ -26,6 +22,7 @@ const ActiveOrderContent = ({ data = [] }) => {
         publishing_date,
         permitted_providers,
         participants,
+        deadline,
     } = data;
 
     const {
@@ -36,46 +33,6 @@ const ActiveOrderContent = ({ data = [] }) => {
     } = useForm({
         defaultValues: { title, description },
     });
-
-    const handleDeleteOrder = async () => {
-        const confirmed = window.confirm(
-            'Вы уверены, что хотите удалить этот заказ?'
-        );
-        if (!confirmed) return;
-
-        try {
-            const response = await axios.delete('/api/order/delete_order', {
-                params: { id },
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token.access_token}`,
-                },
-            });
-            if (response.status === 200) {
-                toast.success('Заказ успешно удален', {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: 'dark',
-                });
-                navigate('/');
-            }
-        } catch (error) {
-            console.error('Error deleting order:', error);
-            toast.error('Не удалось удалить заказ', {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: 'dark',
-            });
-        }
-    };
 
     const onSubmit = async (formData) => {
         try {
@@ -115,107 +72,6 @@ const ActiveOrderContent = ({ data = [] }) => {
                 theme: 'dark',
             });
         }
-    };
-
-    const handleRequestSummary = async () => {
-        setIsLoading(true);
-        try {
-            const response = await axios.get(
-                `/api/order/get_current_order_state?order_id=${id}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token.access_token}`,
-                    },
-                    responseType: 'blob',
-                }
-            );
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'summary.xlsx';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error fetching summary:', error);
-            toast.error('Не удалось скачать сводку', {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: 'dark',
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleStartBidding = () => {
-        setIsBiddingModalOpen(true);
-    };
-
-    const handleBiddingSubmit = async (e) => {
-        e.preventDefault();
-        if (!deadline) {
-            setDeadlineError('Пожалуйста, выберите дедлайн');
-            return;
-        }
-
-        const selectedDate = new Date(deadline);
-        const now = new Date();
-        if (selectedDate <= now) {
-            setDeadlineError('Дедлайн должен быть в будущем');
-            return;
-        }
-
-        const isoDeadline = selectedDate.toISOString(); // Преобразование в ISO 8601
-
-        try {
-            const response = await axios.post(
-                `/api/order/start_bidding?order_id=${id}`,
-                { deadline: isoDeadline },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token.access_token}`,
-                    },
-                }
-            );
-            if (response.status === 200) {
-                toast.success('Торги успешно начаты', {
-                    position: 'top-right',
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    theme: 'dark',
-                });
-                setIsBiddingModalOpen(false);
-                setDeadline('');
-                setDeadlineError('');
-            }
-        } catch (error) {
-            console.error('Error starting bidding:', error);
-            toast.error('Не удалось начать торги', {
-                position: 'top-right',
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: 'dark',
-            });
-        }
-    };
-
-    const handleBiddingCancel = () => {
-        setIsBiddingModalOpen(false);
-        setDeadline('');
-        setDeadlineError('');
     };
 
     const toggleEdit = () => {
@@ -316,128 +172,14 @@ const ActiveOrderContent = ({ data = [] }) => {
                         Товары в заказе:
                     </h3>
                     <OrderAdminTable data={order_items} showText={false} />
-                    <h3 className="text-base font-semibold text-white mt-6 mb-4">
-                        Разрешенные поставщики:
-                    </h3>
-                    <div className="bg-[#39393A] p-6 rounded-lg mt-4 mb-8 shadow-[0px_0px_0px_1px_rgba(125,125,128)]">
-                        <table className="min-w-full table-auto border-collapse border border-gray-300">
-                            <thead>
-                                <tr>
-                                    <th className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                        ID поставщика
-                                    </th>
-                                    <th className="text-base font-base text-white px-4 py-2 border-b">
-                                        Участвует
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {permitted_providers &&
-                                    participants.map((participant) => {
-                                        const isParticipating =
-                                            participant.status.code !== 100 &&
-                                            participant.status.code !== 111;
-
-                                        return (
-                                            <tr key={participant.user.id}>
-                                                <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                    {participant.user.company}
-                                                </td>
-                                                <td className="px-4 py-2 border-b text-center">
-                                                    {isParticipating
-                                                        ? '✅'
-                                                        : '❌'}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="mt-6 flex justify-start gap-4">
-                        <button
-                            onClick={handleRequestSummary}
-                            disabled={isLoading}
-                            className={`w-48 h-12 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(37,99,235,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
-                                isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                            aria-label="Скачать сводку заказа"
-                        >
-                            {isLoading ? (
-                                <span>Загрузка...</span>
-                            ) : (
-                                <>
-                                    <FaCloudDownloadAlt className="text-lg" />
-                                    <span>Скачать сводку</span>
-                                </>
-                            )}
-                        </button>
-                        <button
-                            onClick={handleStartBidding}
-                            className="w-48 h-12 bg-gradient-to-r from-green-600 to-green-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-green-700 hover:to-green-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(22,163,74,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2"
-                            aria-label="Начать торги"
-                        >
-                            <FaPlay className="text-lg" />
-                            <span>Начать торги</span>
-                        </button>
-                    </div>
-                    <div className="flex justify-end mt-6">
-                        <button
-                            onClick={handleDeleteOrder}
-                            className="w-48 h-12 bg-red-600 text-white text-base px-6 py-3 rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                        >
-                            Удалить заказ
-                        </button>
-                    </div>
-                    {/* Модальное окно для ввода дедлайна */}
-                    {isBiddingModalOpen && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-[#39393A] p-6 rounded-lg shadow-lg max-w-md w-full">
-                                <h2 className="text-xl font-semibold text-white mb-4">
-                                    Установить дедлайн для торгов
-                                </h2>
-                                <form
-                                    onSubmit={handleBiddingSubmit}
-                                    className="space-y-4"
-                                >
-                                    <div>
-                                        <label className="text-base font-base text-white">
-                                            Дедлайн:
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            value={deadline}
-                                            onChange={(e) => {
-                                                setDeadline(e.target.value);
-                                                setDeadlineError('');
-                                            }}
-                                            className="w-full mt-2 p-3 bg-[#222224] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                                        />
-                                        {deadlineError && (
-                                            <p className="text-red-500 text-sm mt-1">
-                                                {deadlineError}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="flex justify-end space-x-4">
-                                        <button
-                                            type="button"
-                                            onClick={handleBiddingCancel}
-                                            className="w-32 h-10 bg-gray-600 text-white text-base px-4 py-2 rounded-lg font-base hover:bg-gray-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(75,85,99,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                                        >
-                                            Отменить
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="w-32 h-10 bg-gradient-to-r from-green-600 to-green-500 text-white text-base px-4 py-2 rounded-lg font-base hover:from-green-700 hover:to-green-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(22,163,74,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                                        >
-                                            Подтвердить
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
+                    <OrderActions
+                        status={status}
+                        orderId={id}
+                        token={token}
+                        navigate={navigate}
+                        participants={participants}
+                        order_deadline={deadline}
+                    />
                 </>
             )}
             <ToastContainer
@@ -483,6 +225,7 @@ const AdminOrderDetailsPage = () => {
                     },
                 }
             );
+            console.log(response.data);
             setOrderDetails(response.data);
         } catch (error) {
             console.error('Error fetching order details:', error);

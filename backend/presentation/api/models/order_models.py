@@ -75,6 +75,8 @@ class OrderDTO:
             "order_id": fields.Integer(),
             "user":fields.Nested(UserDTO.user_model),
             "status": fields.Nested(status_model),
+            "deadline": fields.DateTime()
+
 
         }
     )
@@ -84,14 +86,14 @@ class OrderDTO:
         {
             "order_item": fields.Nested(order_item_model),
             "price": fields.Fixed(decimals=2),
-            "is_the_best_price": fields.Boolean(),
             "comment": fields.String()
         }
     )
     order_participant_last_price_model = namespace.model(
         "LastPrice",
         {
-            "price": fields.Nested(order_participant_price_model)
+            "price": fields.Nested(order_participant_price_model),
+            "is_the_best_price": fields.Boolean()
         }
     )
 
@@ -116,6 +118,7 @@ class OrderDTO:
             "permitted_providers": fields.List(fields.Integer()),
             "participating_providers": fields.List(fields.Integer()),
             "participants": fields.List(fields.Nested(order_participant_status_model)),
-            "order_items": fields.List(fields.Nested(order_item_model))
+            "order_items": fields.List(fields.Nested(order_item_model)),
+            "deadline": fields.DateTime()
         }
     )

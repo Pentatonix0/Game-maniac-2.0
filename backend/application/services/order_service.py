@@ -138,7 +138,10 @@ class OrderService:
             order_id = data.get("order_id")
             prices = data.get("prices")
             participant = OrderParticipantDBService.get_participant(username, order_id)
-            new_status = StatusDBService.get_status_by_status_code(101)
+            new_code = 101
+            if participant.status.code in [103, 104]:
+                new_code = 104
+            new_status = StatusDBService.get_status_by_status_code(new_code)
             for last_price in participant.last_prices:
                 order_item_id = last_price.price.order_item_id
                 price_dict = prices[str(order_item_id)]
@@ -223,6 +226,7 @@ class OrderService:
             deadline = data.get('deadline')
             deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
             order = OrderDBService.get_order_by_id(order_id)
+            OrderDBService.set_deadline(order, deadline)
             new_order_status = StatusDBService.get_status_by_status_code(203)
             new_participant_status = StatusDBService.get_status_by_status_code(103)
             suspended_status = StatusDBService.get_status_by_status_code(111)
@@ -230,16 +234,19 @@ class OrderService:
             items = order.order_items
             for item in items:
                 last_prices = item.last_prices
-                lowest_last_price = min(
-                    [lp for lp in last_prices if lp.price.price and lp.price.price not in [None, 0]],
-                    key=lambda x: x.price.price)
-                OrderParticipantPriceDBService.set_is_the_best_price(lowest_last_price.price, True)
+                tmp = [lp for lp in last_prices if lp.price.price and lp.price.price not in [None, 0]]
+                if len(tmp) > 0:
+                    lowest_last_price = min(tmp, key=lambda x: x.price.price)
+                    OrderParticipantLastPriceDBSercice.set_is_the_best_price(lowest_last_price, True)
+                    for last_price in tmp:
+                        if last_price.id != lowest_last_price.id:
+                            OrderParticipantLastPriceDBSercice.set_is_the_best_price(last_price, False)
             # bidding_participants = [prt for prt in order.participants if prt.status.code != 100]
             for participant in order.participants:
-                if participant.status.code == 100:
-                    OrderParticipantDBService.set_participant_status(participant, suspended_status)
+                if participant.status.code in [100, 111]:
+                    OrderParticipantDBService.set_participant_status_id(participant, suspended_status.id)
                 else:
-                    OrderParticipantDBService.set_participant_status(participant, new_participant_status)
+                    OrderParticipantDBService.set_participant_status_id(participant, new_participant_status.id)
                     OrderParticipantDBService.set_participant_deadline(participant, deadline)
 
             responce_object = {
@@ -255,3 +262,82 @@ class OrderService:
                 'message': 'Try again'
             }
             return response_object, 500
+
+    @staticmethod
+    def set_participant_status(username, data):
+        try:
+            order_id = data.get('order_id')
+            status_code = data.get('status_code')
+            participant = OrderParticipantDBService.get_participant(username, order_id)
+            new_status = StatusDBService.get_status_by_status_code(status_code)
+            print(data, username, order_id, new_status, status_code)
+            OrderParticipantDBService.set_participant_status_id(participant, new_status.id)
+            response_object = {
+                'status': 'success',
+                'message': 'Status succesfully updated'
+            }
+            return response_object, 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
+
+    @staticmethod
+    def update_participant_deadline(participant_id, data):
+        try:
+            deadline = data.get('deadline')
+            deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+            print(participant_id, deadline)
+            participant = OrderParticipantDBService.get_participant_by_id(participant_id)
+            new_status_code = 103
+            if participant.status.code in [104, 106]:
+                new_status_code = 104
+            new_status = StatusDBService.get_status_by_status_code(new_status_code)
+            OrderParticipantDBService.set_participant_deadline(participant, deadline)
+            OrderParticipantDBService.set_participant_status_id(participant, new_status.id)
+            response_object = {
+                'status': 'success',
+                'message': 'Participant deadline succesfully updated'
+            }
+            return response_object, 200
+
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
+
+    @staticmethod
+    def update_order_deadline(order_id, data):
+        try:
+            deadline = data.get('deadline')
+            deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+            order = OrderDBService.get_order_by_id(order_id)
+            OrderDBService.set_deadline(order, deadline)
+            participants = [prt for prt in order.participants if prt.status.code != 111]
+            for prt in participants:
+                new_status_code = 103
+                if prt.status.code in [104, 106]:
+                    new_status_code = 104
+                new_status = StatusDBService.get_status_by_status_code(new_status_code)
+                OrderParticipantDBService.set_participant_deadline(prt, deadline)
+                OrderParticipantDBService.set_participant_status_id(prt, new_status.id)
+
+            response_object = {
+                'status': 'success',
+                'message': 'Order deadline succesfully updated'
+            }
+            return response_object, 200
+
+        except Exception as e:
+            print(e)
+        response_object = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return response_object, 500

@@ -4,9 +4,10 @@ Client-side general statuses
 101 - participating, open to editing
 102 - participating, close to editing
 103 - bidding, open to editing
-104 - bidding, close to editing
-105 - bidding finished
-106 - personal orders created
+104 - participating in bidding, open to editing
+105 - have not participated in bidding, close to editing
+106 - have participated in bidding, close to editing
+107 - personal orders created
 111 - suspended from the order
 
 

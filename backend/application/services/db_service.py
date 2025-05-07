@@ -135,6 +135,12 @@ class OrderDBService:
         order.save()
         return order
 
+    @staticmethod
+    def set_deadline(order, deadline):
+        order.deadline = deadline
+        order.save()
+        return order
+
 
 class ItemDBService:
     @staticmethod
@@ -180,6 +186,11 @@ class OrderParticipantDBService:
         return next((prt for prt in user.participants if prt.order_id == order_id), None)
 
     @staticmethod
+    def get_participant_by_id(participant_id):
+        participant = OrderParticipant.query.filter_by(id=participant_id).first()
+        return participant
+
+    @staticmethod
     def update_participant_status(participant, status_id):
         participant.status_id = status_id
         participant.save()
@@ -204,14 +215,15 @@ class OrderParticipantDBService:
     #             participant.delete()
 
     @staticmethod
-    def set_participant_status(participant, status):
-        participant.status = status
+    def set_participant_status_id(participant, status_id):
+        participant.status_id = status_id
         participant.save()
 
     @staticmethod
     def set_participant_deadline(participant, deadline):
         participant.deadline = deadline
         participant.save()
+
 
 class OrderParticipantPriceDBService:
     @staticmethod
@@ -222,11 +234,6 @@ class OrderParticipantPriceDBService:
                                                         comment=comment)
         order_participant_price.save()
         return order_participant_price
-
-    @staticmethod
-    def set_is_the_best_price(price, value):
-        price.is_the_best_price = value
-        price.save()
 
 
 class OrderParticipantLastPriceDBSercice:
@@ -240,6 +247,11 @@ class OrderParticipantLastPriceDBSercice:
     @staticmethod
     def update_last_price_price_id(last_price, new_price_id):
         last_price.price_id = new_price_id
+        last_price.save()
+
+    @staticmethod
+    def set_is_the_best_price(last_price, value):
+        last_price.is_the_best_price = value
         last_price.save()
 
 
