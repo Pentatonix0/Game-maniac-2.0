@@ -183,3 +183,17 @@ class StartBidding(Resource):
         data = request.json
         responce, code = OrderService.update_participant_deadline(participant_id, data)
         return responce, code
+
+@order_ns.route('/create_personal_orders')
+class CreatePersonalOrders(Resource):
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def post(self):
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return {"message": "Id is required"}, 400
+        file = request.files['file']
+        responce, code = OrderService.create_personal_orders(order_id, file)
+        return responce, code
+

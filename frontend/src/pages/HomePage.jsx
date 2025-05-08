@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../auth';
-import LoggedOutContent from '../components/LoggedOutContent';
-import LoggedInAdminContent from '../components/LoggedInAdminContent';
-import LoggedInUserContent from '../components/LoggedInUserContent';
+import { useAuth } from '../utils/auth';
+import LoggedOutContent from '../components/pages/home_page/LoggedOutContent';
+import LoggedInAdminContent from '../components/pages/home_page/LoggedInAdminContent';
+import LoggedInUserContent from '../components/pages/home_page/LoggedInUserContent';
 
 const HomePage = () => {
     const [loading, setLoading] = useState(true);

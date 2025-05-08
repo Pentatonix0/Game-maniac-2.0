@@ -3,6 +3,8 @@ from flask_restx import Api
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from apscheduler.schedulers.background import BackgroundScheduler
+from application.services.order_service import OrderService
 from exts import db
 from presentation.api.controllers.order_controller import order_ns
 from presentation.api.controllers.auth_controller import auth_ns
@@ -36,6 +38,25 @@ api.add_namespace(order_ns)
 api.add_namespace(auth_ns)
 api.add_namespace(users_ns)
 api.add_namespace(excel_ns)
+
+
+def scheduled_task():
+    with app.app_context():
+        try:
+            OrderService.manage_deadline_status()
+        except Exception as e:
+            print(f"Ошибка в запланированной задаче: {str(e)}")
+
+
+with app.app_context():
+    scheduler = BackgroundScheduler(daemon=True)
+    scheduler.add_job(
+        id='Scheduled Task',
+        func=scheduled_task,
+        trigger='interval',
+        seconds=30
+    )
+    scheduler.start()
 
 if __name__ == "__main__":
     app.run()

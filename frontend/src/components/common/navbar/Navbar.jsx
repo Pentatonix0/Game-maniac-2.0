@@ -1,8 +1,8 @@
 import React from 'react';
-import UserValidator from './UserValidation';
-import LoggedOutLinks from './Links/LoggedOutLinks';
-import LoggedInUserLinks from './Links/LoggedInUserLinks';
-import LoggedInAdminLinks from './Links/LoggedInAdminLinks';
+import UserValidator from '../../../utils/UserValidation';
+import LoggedOutLinks from '../../Links/LoggedOutLinks';
+import LoggedInUserLinks from '../../Links/LoggedInUserLinks';
+import LoggedInAdminLinks from '../../Links/LoggedInAdminLinks';
 
 const Navbar = () => {
     return (

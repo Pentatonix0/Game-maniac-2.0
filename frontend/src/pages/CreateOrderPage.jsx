@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import InputField from '../components/InputField';
-import OrderAdminTable from '../components/OrderAdminTable';
-import ProvidersList from '../components/OrderAdminProvidersList';
+import InputField from '../components/common/universal_components/InputField';
+import OrderAdminTable from '../components/pages/admin_order_details_page/OrderAdminTable';
+import ProvidersList from '../components/pages/admin_order_details_page/OrderAdminProvidersList';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

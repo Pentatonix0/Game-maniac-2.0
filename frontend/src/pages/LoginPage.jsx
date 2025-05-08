@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiAlertCircle } from 'react-icons/fi';
-import { login } from '../auth';
-import InputField from '../components/InputField';
+import { login } from '../utils/auth';
+import InputField from '../components/common/universal_components/InputField';
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const LoginPage = () => {
             navigate('/');
         } catch (error) {
             console.error('There was an error logging in:', error);
-            setLoginError('Неверный логин или пароль');
+            setLoginError('Invalid username or password');
         }
 
         reset();
@@ -41,7 +41,7 @@ const LoginPage = () => {
         <div className="flex items-center justify-center">
             <div className="mt-24 max-w-md w-full bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] animate-fade-in">
                 <h1 className="text-3xl font-semibold text-white text-center mb-6">
-                    Вход в систему
+                    Sign in
                 </h1>
                 {loginError && (
                     <div className="flex items-center bg-orange-900/20 border border-orange-600/30 p-4 rounded-xl mb-6">
@@ -52,21 +52,21 @@ const LoginPage = () => {
                 <form onSubmit={handleSubmit(loginUser)} className="space-y-6">
                     <InputField
                         id="login"
-                        label="Логин"
+                        label="Username"
                         type="text"
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Логин обязателен',
+                            required: 'Username is required',
                             maxLength: {
                                 value: 25,
                                 message:
-                                    'Логин не может быть длиннее 25 символов',
+                                    'Username cannot be longer than 25 characters',
                             },
                             minLength: {
                                 value: 4,
                                 message:
-                                    'Логин не может быть короче 4 символов',
+                                    'Username must be at least 4 characters',
                             },
                         }}
                         labelTextColor="gray-200"
@@ -75,16 +75,16 @@ const LoginPage = () => {
                     />
                     <InputField
                         id="password"
-                        label="Пароль"
+                        label="Password"
                         type="password"
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Пароль обязателен',
+                            required: 'Password is required',
                             minLength: {
                                 value: 8,
                                 message:
-                                    'Пароль не может быть короче 8 символов',
+                                    'Password must be at least 8 characters',
                             },
                         }}
                         labelTextColor="gray-200"
@@ -97,9 +97,9 @@ const LoginPage = () => {
                         className={`w-full px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 ${
                             isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
-                        aria-label="Войти в систему"
+                        aria-label="Sign in to the system"
                     >
-                        {isSubmitting ? 'Вход...' : 'Войти'}
+                        {isSubmitting ? 'Signing in...' : 'Sign in'}
                     </button>
                 </form>
             </div>

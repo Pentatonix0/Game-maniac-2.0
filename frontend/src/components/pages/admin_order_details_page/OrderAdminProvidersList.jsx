@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loading from './Loading';
+import Loading from '../../common/universal_components/Loading';
 
 const ProvidersList = ({ selectedProviders, setSelectedProviders }) => {
     const [loading, setLoading] = useState(true);
@@ -17,7 +17,6 @@ const ProvidersList = ({ selectedProviders, setSelectedProviders }) => {
 
             setProviders(response.data);
             setLoading(false);
-            console.log(response);
 
             // Инициализация состояния с выбранными провайдерами по умолчанию
             const initialSelected = response.data.reduce((acc, provider) => {

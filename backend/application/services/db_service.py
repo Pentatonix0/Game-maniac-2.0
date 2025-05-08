@@ -112,6 +112,12 @@ class OrderDBService:
         return orders
 
     @staticmethod
+    def get_all_bidding_orders():
+        status = Status.query.filter_by(code=203).first()
+        orders = status.orders
+        return orders
+
+    @staticmethod
     def get_order_by_id(order_id):
         order = Order.query.filter_by(id=order_id).first()
         return order

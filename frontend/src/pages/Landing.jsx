@@ -1,19 +1,19 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Loading from '../components/Loading';
-import PrivateRoute from '../components/PrivateAuth';
+import Navbar from '../components/common/navbar/Navbar';
+import Loading from '../components/common/universal_components/Loading';
+import PrivateRoute from '../utils/PrivateAuth';
 
 // Ленивая загрузка компонентов (без Suspense)
-import SignUpPage from './SignUp';
-import LoginPage from './Login';
-import HomePage from './Home';
-import OrderDetails from './OrderDetails';
-import CreateOrder from './CreateOrder';
+import SignUpPage from './SignUpPage';
+import LoginPage from './LoginPage';
+import HomePage from './HomePage';
+import OrderDetails from './OrderDetailsPage';
+import CreateOrder from './CreateOrderPage';
 import AdminOrderDetailsPage from './AdminOrderDetailsPage';
-import Footer from '../components/Footer';
-import UsersPage from './Users';
-import Error404 from '../components/Error404';
+import Footer from '../components/common/footer/Footer';
+import UsersPage from './UsersPage';
+import Error404Page from './Error404Page';
 
 const AppRoutes = () => {
     return (
@@ -53,7 +53,7 @@ const AppRoutes = () => {
                     </PrivateRoute>
                 }
             />
-            <Route path="*" element={<Error404 />} />
+            <Route path="*" element={<Error404Page />} />
         </Routes>
     );
 };

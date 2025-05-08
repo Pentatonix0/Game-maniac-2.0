@@ -1,6 +1,6 @@
 from application.services.db_service import *
 from application.services.excel_service import ExcelService
-from datetime import datetime
+from datetime import datetime, timezone
 import dateutil.parser
 
 
@@ -180,6 +180,7 @@ class OrderService:
                 name = last_price.price.order_item.item.name
                 summary[name][company] = last_price.price.price
                 summary[name][f"comment_{user_id}"] = last_price.price.comment
+        print(summary)
         summary_excel = list(summary.values())
         file_stream = ExcelService.make_summary_excel(summary_excel)
         return file_stream
@@ -341,3 +342,35 @@ class OrderService:
             'message': 'Try again'
         }
         return response_object, 500
+
+    @staticmethod
+    def manage_deadline_status():
+        try:
+            print("__MANAGER_ACTIVE__")
+            active_orders = OrderDBService.get_all_bidding_orders()
+            now = datetime.now(timezone.utc)
+            for order in active_orders:
+                participants = [prt for prt in order.participants if prt.status.code not in [111]]
+                for participant in participants:
+                    deadline = participant.deadline
+                    if deadline.tzinfo is None:  # If naive, make it UTC-aware
+                        deadline = deadline.replace(tzinfo=timezone.utc)
+                    if deadline <= now and participant.status.code not in [105, 106]:
+                        new_status_code = 105
+                        if participant.status.code == 104:
+                            new_status_code = 106
+                        new_status = StatusDBService.get_status_by_status_code(new_status_code)
+                        OrderParticipantDBService.set_participant_status_id(participant, new_status.id)
+            print("__MANAGER_DONE__")
+        except Exception as e:
+            print(e)
+
+    @staticmethod
+    def create_personal_orders(order_id, file):
+        summary = ExcelService.from_summary(file)
+        order = OrderDBService.get_order_by_id(order_id)
+        active_participants = OrderParticipantDBService.get_all_active_participants(order_id)
+        item_prices_dict = {order_item.item.name: order_item.last_prices for order_item in order.order_items}
+        print(summary)
+        print(item_prices_dict)
+        return {}, 200

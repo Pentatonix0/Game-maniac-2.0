@@ -9,7 +9,6 @@ const DataTable = ({ data, showText = true }) => {
         setIsTableVisible(!isTableVisible);
         setIsArrowRotated(!isArrowRotated); // Переключение состояния стрелки
     };
-    console.log(data);
 
     return (
         <div className="mt-4">

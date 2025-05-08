@@ -103,7 +103,8 @@ class OrderDTO:
             "id": fields.Integer(),
             "order": fields.Nested(order_preview_model),
             "status": fields.Nested(status_model),
-            "last_prices": fields.Nested(order_participant_last_price_model)
+            "last_prices": fields.Nested(order_participant_last_price_model),
+            "deadline": fields.DateTime()
         }
     )
 

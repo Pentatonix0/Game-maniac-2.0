@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../auth';
+import { useAuth } from './auth';
 
 const UserValidator = ({
     loggedOutCont: LoggedOutCont,

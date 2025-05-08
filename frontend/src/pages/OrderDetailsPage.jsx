@@ -6,8 +6,8 @@ import { useForm } from 'react-hook-form';
 import { FiInfo, FiAlertCircle } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import OrderDetailsTable from '../components/OrderDetailsTable';
-import Loading from '../components/Loading';
+import OrderDetailsTable from '../components/pages/order_details_page/OrderDetailsTable';
+import Loading from '../components/common/universal_components/Loading';
 
 const OrderDetail = () => {
     const { orderId } = useParams();
@@ -47,13 +47,32 @@ const OrderDetail = () => {
         };
 
         fetchOrderData();
-    }, [orderId]);
+    }, [orderId, navigate]);
 
     const handleCommentsChange = (newComments) => {
         setComments(newComments);
     };
 
     const onSubmit = async (data) => {
+        if (order.deadline) {
+            const deadline = new Date(order.deadline + 'Z');
+            const now = new Date();
+            if (deadline < now) {
+                toast.warn('Deadline has expired, returning to homepage', {
+                    position: 'top-right',
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: 'dark',
+                });
+
+                navigate('/');
+                return;
+            }
+        }
+
         const body = {
             order_id: parseInt(orderId),
             prices: order.last_prices.reduce((acc, item) => {
@@ -77,7 +96,7 @@ const OrderDetail = () => {
                 },
             });
             if (response.status === 200) {
-                toast.success('Prices succesfully submitted', {
+                toast.success('Prices successfully submitted', {
                     position: 'top-right',
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -122,7 +141,7 @@ const OrderDetail = () => {
     return (
         <div className="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-5xl">
-                <h1 className="text-3xl font-bold text-white mb-6">
+                <h1 className="text-3xl font-bold break-words text-white mb-6">
                     {order && !loading ? order.order.title : 'Loading Order...'}
                 </h1>
                 <div className="bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)]">

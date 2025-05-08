@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiAlertTriangle } from 'react-icons/fi';
 
-const Error404 = () => {
+const Error404Page = () => {
     const navigate = useNavigate();
 
     const handleGoHome = () => {
@@ -31,4 +31,4 @@ const Error404 = () => {
     );
 };
 
-export default Error404;
+export default Error404Page;

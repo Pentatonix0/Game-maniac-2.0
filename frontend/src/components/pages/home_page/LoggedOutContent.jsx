@@ -6,21 +6,20 @@ const LoggedOutContent = () => {
     return (
         <div className="flex flex-col max-w-7xl mx-auto px-4 sm:px-20 py-12">
             <h1 className="text-3xl font-semibold text-white px-3">
-                Welcome to Game Order Platform
+                Welcome to GoodPrice Tender Platform
             </h1>
 
-            <div className="bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] mt-6 animate-fade-in">
+            <div className="bg-[#222224] p-8 rounded-2xl border border-1 border-gray-600 shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] mt-6 animate-fade-in">
                 <div className="max-w-2xl mx-auto text-center">
                     <p className="text-xl font-medium text-white mb-6">
-                        Join our platform to participate in game orders,
-                        collaborate with other players, and manage your gaming
-                        sessions efficiently.
+                        Participate in tenders with GoodPrice and connect with
+                        our company to supply goods and services efficiently.
                     </p>
 
                     <p className="text-base text-gray-300 mb-8 leading-relaxed">
-                        Create an account to get started or log in if you
-                        already have one. Gain access to exclusive features and
-                        manage your orders seamlessly.
+                        Sign up or log in to access tender opportunities, submit
+                        your bids, and manage your participation seamlessly with
+                        our intuitive platform.
                     </p>
 
                     <div
@@ -29,16 +28,16 @@ const LoggedOutContent = () => {
                     >
                         <Link
                             to="/signup"
-                            className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 animate-fade-in"
-                            aria-label="Sign up for Game Order Platform"
+                            className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 animate-fade-in"
+                            aria-label="Sign up for GoodPrice Tender Platform"
                         >
                             <FiUserPlus className="text-xl" />
                             <span>Sign Up</span>
                         </Link>
                         <Link
                             to="/login"
-                            className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-lg font-medium rounded-md hover:from-blue-700 hover:to-blue-600 hover:shadow-[0_0_6px_rgba(59,130,246,0.6)] hover:scale-101 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 animate-fade-in"
-                            aria-label="Log in to Game Order Platform"
+                            className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-lg font-medium rounded-md hover:from-blue-700 hover:to-blue-600 hover:shadow-[0_0_6px_rgba(59,130,246,0.6)] hover:scale-105 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 animate-fade-in"
+                            aria-label="Log in to GoodPrice Tender Platform"
                         >
                             <FiLogIn className="text-xl" />
                             <span>Login</span>

@@ -5,6 +5,7 @@ import {
     FaPlay,
     FaCloudUploadAlt,
     FaTimes,
+    FaUserPlus,
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
@@ -163,6 +164,8 @@ const OrderActions = ({
         }
     };
 
+    const handleAddParticipant = () => {};
+
     const handleUpdateOrderDeadline = async (e) => {
         e.preventDefault();
         if (!deadline) {
@@ -246,6 +249,7 @@ const OrderActions = ({
                 }
             );
             if (response.status === 200) {
+                window.location.reload();
                 toast.success('Дедлайн участника успешно обновлен', {
                     position: 'top-right',
                     autoClose: 3000,
@@ -322,7 +326,7 @@ const OrderActions = ({
                     draggable: true,
                     theme: 'dark',
                 });
-                setSelectedFile(null);
+                // setSelectedFile(null);
                 document.querySelector('input[type="file"]').value = '';
             }
         } catch (error) {
@@ -427,7 +431,7 @@ const OrderActions = ({
         </div>
     );
 
-    const renderActionButtons = () => {
+    const renderActions = () => {
         switch (status.code) {
             case 200:
                 return (
@@ -435,7 +439,7 @@ const OrderActions = ({
                         <h3 className="text-base font-semibold text-white mt-6 mb-4">
                             Разрешенные поставщики:
                         </h3>
-                        <div className="bg-[#39393A] p-6 rounded-lg mt-4 mb-8 shadow-[0px_0px_0px_1px_rgba(125,125,128)]">
+                        <div className="bg-[#39393A] p-6 rounded-lg mt-4 mb-4 shadow-[0px_0px_0px_1px_rgba(125,125,128)]">
                             <table className="min-w-full table-auto border-collapse border border-gray-300">
                                 <thead>
                                     <tr>
@@ -474,6 +478,15 @@ const OrderActions = ({
                                 </tbody>
                             </table>
                         </div>
+                        <div>
+                            <button
+                                onClick={handleAddParticipant}
+                                className="w-18 h-8 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-purple-700 hover:to-purple-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(147,51,234,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2"
+                                aria-label="Добавить участника"
+                            >
+                                <FaUserPlus className="text-xs" />
+                            </button>
+                        </div>
                         <div className="mt-6 flex justify-start gap-4">
                             <button
                                 onClick={handleRequestSummary}
@@ -506,7 +519,7 @@ const OrderActions = ({
                         <div className="flex justify-end mt-6">
                             <button
                                 onClick={handleDeleteOrder}
-                                className="w-48 h-12 bg-red-600 text-white text-base px-6 py-3 rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                className="w-30 h-8 bg-red-600 text-white text-xs px-6  rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
                             >
                                 Удалить заказ
                             </button>
@@ -557,41 +570,48 @@ const OrderActions = ({
                                     {participants &&
                                         participants.map((participant) => {
                                             const isParticipating =
-                                                participant.status.code >=
-                                                    104 &&
-                                                participant.status.code <= 106;
+                                                participant.status.code ===
+                                                    104 ||
+                                                participant.status.code === 106;
 
                                             return (
-                                                <tr key={participant.user.id}>
-                                                    <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                        {
-                                                            participant.user
-                                                                .company
+                                                participant.status.code !=
+                                                    111 && (
+                                                    <tr
+                                                        key={
+                                                            participant.user.id
                                                         }
-                                                    </td>
-                                                    <td className="px-4 py-2 border-b text-center border-r border-gray-300">
-                                                        {isParticipating
-                                                            ? '✅'
-                                                            : '❌'}
-                                                    </td>
-                                                    <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                        {formatRemainingTime(
-                                                            participant.deadline
-                                                        )}
-                                                    </td>
-                                                    <td className="px-4 py-2 border-b">
-                                                        <button
-                                                            onClick={() =>
-                                                                openParticipantDeadlineModal(
-                                                                    participant.id
-                                                                )
+                                                    >
+                                                        <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
+                                                            {
+                                                                participant.user
+                                                                    .company
                                                             }
-                                                            className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                                                        >
-                                                            Изменить
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                                        </td>
+                                                        <td className="px-4 py-2 border-b text-center border-r border-gray-300">
+                                                            {isParticipating
+                                                                ? '✅'
+                                                                : '❌'}
+                                                        </td>
+                                                        <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
+                                                            {formatRemainingTime(
+                                                                participant.deadline
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-2 border-b">
+                                                            <button
+                                                                onClick={() =>
+                                                                    openParticipantDeadlineModal(
+                                                                        participant.id
+                                                                    )
+                                                                }
+                                                                className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                                            >
+                                                                Изменить
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                )
                                             );
                                         })}
                                 </tbody>
@@ -663,7 +683,7 @@ const OrderActions = ({
                         <div className="flex justify-end mt-6">
                             <button
                                 onClick={handleDeleteOrder}
-                                className="w-48 h-12 bg-red-600 text-white text-base px-6 py-3 rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                className="w-30 h-8 bg-red-600 text-white text-xs px-6  rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
                             >
                                 Удалить заказ
                             </button>
@@ -801,7 +821,7 @@ const OrderActions = ({
 
     return (
         <>
-            {renderActionButtons()}
+            {renderActions()}
             {isBiddingModalOpen &&
                 renderDeadlineModal({
                     title: 'Установить дедлайн для торгов',

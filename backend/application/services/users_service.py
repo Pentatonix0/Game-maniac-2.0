@@ -60,27 +60,3 @@ class UserService:
                 'message': 'try again'
             }
             return response_object, 400
-
-#     @staticmethod
-#     def delete_user(username):
-#         try:
-#             user_to_delete = User.query.filter_by(username=username).first()
-#             print(user_to_delete)
-#             if (user_to_delete is None):
-#                 response_object = {"message": "user does not exist"}
-#                 return response_object, 400
-#             elif (user_to_delete.role == "admin"):
-#                 response_object = {"message": "user does not exist"}
-#                 return response_object, 400
-#             user_to_delete.delete()
-#
-#             response_object = {'message': f'User {username} deleted successfully'}
-#             return response_object
-#         except Exception as e:
-#             print(e)
-#             response_object = {
-#                 'status': 'fail',
-#                 'message': 'Try again'
-#             }
-#             return response_object, 500
-#

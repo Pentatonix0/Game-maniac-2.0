@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Loading from './Loading';
+import Loading from '../../common/universal_components/Loading';
 
 const UsersPageContent = () => {
     const [users, setUsers] = useState([]);

@@ -27,9 +27,19 @@ const STATUS_CLASSES = {
         label: 'You can offer a lower price',
     },
     104: {
+        button: 'bg-[#39393A] border-2 border-[#f7e08b] hover:bg-[#4A4A4C] hover:shadow-[0_0_8px_rgba(247,224,139,0.6)] focus:ring-[#f7e08b]',
+        text: 'text-[#f7e08b]',
+        label: 'You can change prices',
+    },
+    105: {
         button: 'bg-[#39393A] border-2 border-[#faed27] hover:bg-[#4A4A4C] hover:shadow-[0_0_8px_rgba(250,237,39,0.6)] focus:ring-[#faed27]',
         text: 'text-[#faed27]',
-        label: 'You can offer a lower price',
+        label: ['You have not changed prices.', 'Soon you will get an order.'],
+    },
+    106: {
+        button: 'bg-[#39393A] border-2 border-[#4ADE80] hover:bg-[#4A4A4C] hover:shadow-[0_0_8px_rgba(74,222,128,0.6)] focus:ring-[#4ADE80]',
+        text: 'text-[#4ADE80]',
+        label: 'Soon you will get an order',
     },
 };
 
@@ -41,7 +51,7 @@ const CARD_CLASSES =
 
 /**
  * Хук для управления таймером дедлайна
- * @param {string|null} bidding_deadline - Дедлайн в формате ISO 8601 (UTC)
+ * @param {string|null} bidding_deadline - Дедлайн торгов (UTC)
  * @param {number} orderId - ID заказа
  * @param {number} status - Код статуса участника
  * @returns {string} - Оставшееся время или сообщение
@@ -57,14 +67,13 @@ const useTimer = (bidding_deadline, orderId, status) => {
             return;
         }
 
-        // Проверка валидности дедлайна
         const deadlineDate = new Date(bidding_deadline + 'Z');
         if (isNaN(deadlineDate)) {
             setTimeLeft('Invalid deadline');
             return;
         }
 
-        let hasSentRequest = false; // Флаг для предотвращения повторных запросов
+        let hasSentRequest = false;
 
         const timer = setInterval(() => {
             const now = new Date();
@@ -74,8 +83,8 @@ const useTimer = (bidding_deadline, orderId, status) => {
                 clearInterval(timer);
                 setTimeLeft('The deadline has expired');
 
-                // Отправляем POST-запрос только один раз
-                if (!hasSentRequest && status !== 105) {
+                if (!hasSentRequest && (status === 103 || status === 104)) {
+                    console.log('call', status);
                     hasSentRequest = true;
                     const token = JSON.parse(
                         localStorage.getItem('REACT_TOKEN_AUTH_KEY')
@@ -86,7 +95,7 @@ const useTimer = (bidding_deadline, orderId, status) => {
                                 '/api/order/set_participant_status',
                                 {
                                     order_id: orderId,
-                                    status_code: 105,
+                                    status_code: status === 103 ? 105 : 106,
                                 },
                                 {
                                     headers: {
@@ -95,11 +104,6 @@ const useTimer = (bidding_deadline, orderId, status) => {
                                     },
                                 }
                             )
-                            .then((response) => {
-                                if (response.status === 200) {
-                                    window.location.reload();
-                                }
-                            })
                             .catch((error) => {
                                 console.error(
                                     'Error setting participant status:',
@@ -122,7 +126,7 @@ const useTimer = (bidding_deadline, orderId, status) => {
                     seconds
                 )}`
             );
-        }, 1000);
+        }, 100);
 
         return () => clearInterval(timer);
     }, [bidding_deadline, orderId, status]);
@@ -175,6 +179,25 @@ const ParticipationStatus = ({ orderId, status }) => {
                 </div>
             );
         case 103:
+            return (
+                <div className="flex justify-between items-center animate-slide-in">
+                    <div
+                        className={`mt-6 text-xs font-base ${statusConfig.text} animate-fade-in`}
+                    >
+                        {statusConfig.label}
+                    </div>
+                    <div className="w-32">
+                        <Link to={`/order/${orderId}`}>
+                            <button
+                                className={`${COMMON_BUTTON_CLASSES} ${statusConfig.button}`}
+                                aria-label="View order details"
+                            >
+                                Offer
+                            </button>
+                        </Link>
+                    </div>
+                </div>
+            );
         case 104:
             return (
                 <div className="flex justify-between items-center animate-slide-in">
@@ -187,9 +210,61 @@ const ParticipationStatus = ({ orderId, status }) => {
                         <Link to={`/order/${orderId}`}>
                             <button
                                 className={`${COMMON_BUTTON_CLASSES} ${statusConfig.button}`}
+                                aria-label="View order details"
+                            >
+                                Change
+                            </button>
+                        </Link>
+                    </div>
+                </div>
+            );
+        case 105:
+            return (
+                <div className="flex justify-between items-center animate-slide-in">
+                    <div
+                        className={`mt-6 text-xs font-base ${statusConfig.text} animate-fade-in flex flex-col`}
+                    >
+                        {Array.isArray(statusConfig.label) ? (
+                            statusConfig.label.map((line, index) => (
+                                <span key={index}>{line}</span>
+                            ))
+                        ) : (
+                            <span>{statusConfig.label}</span>
+                        )}
+                    </div>
+                    <div className="w-32">
+                        <Link to={`/order/${orderId}`}>
+                            <button
+                                className={`${COMMON_BUTTON_CLASSES} ${statusConfig.button}`}
                                 aria-label="Offer a lower price"
                             >
-                                Offer
+                                Details
+                            </button>
+                        </Link>
+                    </div>
+                </div>
+            );
+        case 106:
+            return (
+                <div className="flex justify-between items-center animate-slide-in">
+                    <div
+                        className={`mt-6 text-xs font-base ${statusConfig.text} animate-fade-in flex flex-col`}
+                    >
+                        {Array.isArray(statusConfig.label) ? (
+                            statusConfig.label.map((line, index) => (
+                                <span key={index}>{line}</span>
+                            ))
+                        ) : (
+                            <span>{statusConfig.label}</span>
+                        )}
+                    </div>
+                    <div className="w-32">
+                        <Link to={`/order/${orderId}`}>
+                            <button
+                                className={`${COMMON_BUTTON_CLASSES} ${statusConfig.button}`}
+                                aria-label="Offer a lower price"
+                            >
+                                Details
                             </button>
                         </Link>
                     </div>
@@ -220,19 +295,20 @@ const ProviderCard = ({
 
     return (
         <div className={CARD_CLASSES} aria-label={`Order ${title}`}>
-            <div className="flex justify-between">
-                <div className="w-full">
-                    <h2 className="text-xl font-base text-[#d1d1d1] mb-4 animate-fade-in break-words overflow-hidden">
+            <div className="flex justify-between items-start">
+                <div className="min-w-0 flex-1">
+                    <h2 className="text-xl font-base text-[#d1d1d1] mb-4 mr-4 animate-fade-in break-words overflow-hidden text-ellipsis">
                         {title}
                     </h2>
                 </div>
-                <div>
-                    {bidding_deadline ? (
+                <div className="flex-shrink-0 w-40 text-right">
+                    {bidding_deadline &&
+                    (status === 103 || status === 104 || status === 105) ? (
                         <span
                             className="text-[#FAED27] font-base text-sm animate-pulse-slow"
                             aria-live="polite"
                         >
-                            {timeLeft || 'No deadline'}
+                            {timeLeft || ''}
                         </span>
                     ) : (
                         status === 100 && (
@@ -270,7 +346,7 @@ const AdminCard = ({ orderId, title, description }) => {
             <div className="flex justify-end mt-auto">
                 <Link to={`/order_details/${orderId}`}>
                     <button
-                        className="bg-[#FF5F00] text-white text-base px-6 py-3 rounded-lg font-base hover:bg-red-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                        className="bg-[#FF5F00] text-white text-base px-6 py-3 rounded-lg font-base hover:bg-red-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(255,95,0,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
                         aria-label="View order details"
                     >
                         Подробности

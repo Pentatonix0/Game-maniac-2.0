@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import InputFieldArrow from './InputFieldArrow';
+import InputFieldArrow from '../../common/universal_components/InputFieldArrow';
 import CommentModal from './CommentModal';
 
 const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {

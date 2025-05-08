@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
-import { login } from '../auth';
-import InputField from '../components/InputField';
+import { login } from '../utils/auth';
+import InputField from '../components/common/universal_components/InputField';
 
 const SignUpPage = () => {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const SignUpPage = () => {
 
     const onSubmit = async (data) => {
         if (data.password !== data.confirmPassword) {
-            setServerError('Пароли не совпадают');
+            setServerError('Passwords do not match');
             return;
         }
 
@@ -34,13 +34,15 @@ const SignUpPage = () => {
             const response = await axios.post('/api/auth/signup', body, {
                 headers: { 'Content-Type': 'application/json' },
             });
-            setServerResponse(response.data.message || 'Регистрация успешна');
+            setServerResponse(
+                response.data.message || 'Registration successful'
+            );
             setServerError('');
             login(response.data);
             navigate('/');
         } catch (err) {
             console.error('Error:', err);
-            setServerError(err.response?.data?.message || 'Ошибка регистрации');
+            setServerError(err.response?.data?.message || 'Registration error');
             setServerResponse('');
         }
     };
@@ -49,7 +51,7 @@ const SignUpPage = () => {
         <div className="flex items-center justify-center">
             <div className="mt-24 mb-24 max-w-md w-full bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] animate-fade-in">
                 <h1 className="text-3xl font-semibold text-white text-center mb-6">
-                    Регистрация
+                    Sign Up
                 </h1>
                 {serverResponse && (
                     <div className="flex items-center bg-green-900/20 border border-green-600/30 p-4 rounded-xl mb-6">
@@ -68,21 +70,21 @@ const SignUpPage = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <InputField
                         id="login"
-                        label="Логин"
+                        label="Username"
                         type="text"
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Логин обязателен',
+                            required: 'Username is required',
                             maxLength: {
                                 value: 25,
                                 message:
-                                    'Логин не может быть длиннее 25 символов',
+                                    'Username cannot be longer than 25 characters',
                             },
                             minLength: {
                                 value: 4,
                                 message:
-                                    'Логин не может быть короче 4 символов',
+                                    'Username must be at least 4 characters',
                             },
                         }}
                         labelTextColor="gray-200"
@@ -96,11 +98,11 @@ const SignUpPage = () => {
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Email обязателен',
+                            required: 'Email is required',
                             maxLength: {
                                 value: 80,
                                 message:
-                                    'Email не может быть длиннее 80 символов',
+                                    'Email cannot be longer than 80 characters',
                             },
                         }}
                         labelTextColor="gray-200"
@@ -109,16 +111,16 @@ const SignUpPage = () => {
                     />
                     <InputField
                         id="company"
-                        label="Название компании"
+                        label="Company Name"
                         type="text"
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Название компании обязательно',
+                            required: 'Company name is required',
                             maxLength: {
                                 value: 80,
                                 message:
-                                    'Название компании не может быть длиннее 80 символов',
+                                    'Company name cannot be longer than 80 characters',
                             },
                         }}
                         labelTextColor="gray-200"
@@ -127,16 +129,16 @@ const SignUpPage = () => {
                     />
                     <InputField
                         id="password"
-                        label="Пароль"
+                        label="Password"
                         type="password"
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Пароль обязателен',
+                            required: 'Password is required',
                             minLength: {
                                 value: 8,
                                 message:
-                                    'Пароль не может быть короче 8 символов',
+                                    'Password must be at least 8 characters',
                             },
                         }}
                         labelTextColor="gray-200"
@@ -145,16 +147,16 @@ const SignUpPage = () => {
                     />
                     <InputField
                         id="confirmPassword"
-                        label="Повторите пароль"
+                        label="Confirm Password"
                         type="password"
                         register={register}
                         errors={errors}
                         validation={{
-                            required: 'Подтверждение пароля обязательно',
+                            required: 'Password confirmation is required',
                             validate: (value) =>
                                 value ===
                                     document.getElementById('password').value ||
-                                'Пароли не совпадают',
+                                'Passwords do not match',
                         }}
                         labelTextColor="gray-200"
                         inputClassName="w-full p-3 bg-[#39393A] text-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -166,9 +168,9 @@ const SignUpPage = () => {
                         className={`w-full px-6 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-200 ${
                             isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
-                        aria-label="Зарегистрироваться"
+                        aria-label="Register"
                     >
-                        {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
+                        {isSubmitting ? 'Registering...' : 'Register'}
                     </button>
                 </form>
             </div>

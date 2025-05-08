@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import OrderCard from './Card';
+import OrderCard from '../../common/card/Card';
 import axios from 'axios';
 
 const LoggedInUserContent = () => {

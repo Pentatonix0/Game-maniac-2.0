@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { logout } from '../../auth';
+import { logout } from '../../utils/auth';
 
 const AccountLink = () => (
     <Link

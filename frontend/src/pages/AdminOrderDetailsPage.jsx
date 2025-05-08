@@ -4,9 +4,9 @@ import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import OrderAdminTable from '../components/OrderAdminTable';
-import OrderActions from '../components/OrderActions';
-import Loading from '../components/Loading';
+import OrderAdminTable from '../components/pages/admin_order_details_page/OrderAdminTable';
+import OrderActions from '../components/pages/admin_order_details_page/OrderActions';
+import Loading from '../components/common/universal_components/Loading';
 
 const ActiveOrderContent = ({ data = [] }) => {
     const token = JSON.parse(localStorage.getItem('REACT_TOKEN_AUTH_KEY'));

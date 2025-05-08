@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../auth'; // Предполагаем, что useAuth возвращает состояние авторизации
-import Error404 from './Error404';
+import { useAuth } from './auth'; // Предполагаем, что useAuth возвращает состояние авторизации
+import Error404Page from '../pages/Error404Page';
 
 const PrivateRoute = ({ children, adminRequired = false }) => {
     const [loading, setLoading] = useState(true);
     const [logged] = useAuth();
     const token = JSON.parse(localStorage.getItem('REACT_TOKEN_AUTH_KEY'));
-    const isAdmin = token.role === 'admin';
+    const isAdmin = token && token.role === 'admin';
 
     // Handle to not have redirection on refresh
     useEffect(() => {
@@ -22,7 +22,7 @@ const PrivateRoute = ({ children, adminRequired = false }) => {
         (adminRequired && !isAdmin) ||
         (logged && !adminRequired && isAdmin)
     ) {
-        return <Error404 />;
+        return <Error404Page />;
     }
 
     // Если авторизован — отображаем дочерние компоненты

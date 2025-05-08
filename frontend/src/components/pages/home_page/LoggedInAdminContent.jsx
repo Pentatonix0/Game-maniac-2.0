@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import OrderCard from './Card';
+import OrderCard from '../../common/card/Card';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Loading from './Loading';
+import Loading from '../../common/universal_components/Loading';
 
 const LoggedInAdminContent = () => {
     const navigate = useNavigate();
@@ -22,7 +22,6 @@ const LoggedInAdminContent = () => {
                     Authorization: `Bearer ${token.access_token}`,
                 },
             });
-            console.log(response.data);
             setOrders(response.data); // Сохраняем полученные заказы в состояние
         } catch (error) {
             console.error('Error fetching orders:', error);
