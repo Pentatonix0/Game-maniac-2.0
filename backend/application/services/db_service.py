@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash
 from datetime import datetime
 
 
-class PrimaryInitialization:
+class PrimaryInitializationDBService:
     @staticmethod
     def init():
         UserDBService.create_user("admin", "main@admin.com", "Goodprice",
@@ -34,6 +34,16 @@ class PrimaryInitialization:
             status_code = status["status_code"]
             status_message = status["status_message"]
             StatusDBService.create_status(status_code, status_message)
+
+    @staticmethod
+    def is_initialized():
+        status = InitializationStatus.query.first()
+        return status
+
+    @staticmethod
+    def initialization_done():
+        status = InitializationStatus(is_initialized=True)
+        status.save()
 
 
 class UserDBService:

@@ -11,12 +11,14 @@ const AccountLink = () => (
             localStorage.removeItem('token');
             logout();
         }}
+        className="text-sm text-white hover:underline"
     >
-        <img
+        {/* <img
             src="/account_circle.png"
             alt="Website Logo"
             className="h-8 hover:scale-101" // Размер логотипа (можно настроить)
-        />
+        /> */}
+        Log out
     </Link>
 );
 

@@ -7,7 +7,7 @@ import UsersPageContent from '../components/pages/users_page/UsersPageContent';
 
 const UsersPage = () => {
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen bg-[#18181A] flex flex-col">
             <main className="flex-grow">
                 <UsersPageContent />
             </main>

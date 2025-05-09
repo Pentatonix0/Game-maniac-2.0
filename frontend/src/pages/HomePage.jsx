@@ -18,7 +18,7 @@ const HomePage = () => {
         return null;
     }
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen bg-[#18181A] flex flex-col">
             <main className="flex-grow">
                 {logged ? (
                     token?.role === 'admin' ? (

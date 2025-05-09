@@ -1,6 +1,7 @@
 from email.policy import default
 from exts import db
 
+
 class BaseModel(db.Model):
     __abstract__ = True
 
@@ -16,6 +17,17 @@ class BaseModel(db.Model):
             db.session.rollback()
             raise e
 
+
+class InitializationStatus(BaseModel):
+    __tablename__ = 'initialization_status'
+
+    id = db.Column(db.Integer, primary_key=True)
+    is_initialized = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __repr__(self):
+        return f'<InitializationStatus is_initialized={self.is_initialized}>'
+
+
 class User(BaseModel):
     __tablename__ = 'users'
 
@@ -30,6 +42,7 @@ class User(BaseModel):
     # Связи с каскадным удалением
     participants = db.relationship("OrderParticipant", back_populates="user", cascade="all, delete-orphan")
     personal_orders = db.relationship("PersonalOrder", back_populates="user", cascade="all, delete-orphan")
+
 
 class Order(BaseModel):
     __tablename__ = 'orders'
@@ -49,6 +62,7 @@ class Order(BaseModel):
     participants = db.relationship("OrderParticipant", back_populates="order", cascade="all, delete-orphan")
     personal_orders = db.relationship("PersonalOrder", back_populates="order", cascade="all, delete-orphan")
 
+
 class Item(BaseModel):
     __tablename__ = 'items'
 
@@ -57,6 +71,7 @@ class Item(BaseModel):
 
     # Связи с каскадным удалением
     order_items = db.relationship("OrderItem", back_populates="item", cascade="all, delete-orphan")
+
 
 class OrderItem(BaseModel):
     __tablename__ = 'order_items'
@@ -73,6 +88,7 @@ class OrderItem(BaseModel):
                                          cascade="all, delete-orphan")
     last_prices = db.relationship("OrderParticipantLastPrice", back_populates="order_item",
                                   cascade="all, delete-orphan")
+
 
 class OrderParticipant(BaseModel):
     __tablename__ = 'order_participants'
@@ -92,6 +108,7 @@ class OrderParticipant(BaseModel):
     last_prices = db.relationship("OrderParticipantLastPrice", back_populates="participant",
                                   cascade="all, delete-orphan")
 
+
 class OrderParticipantPrice(BaseModel):
     __tablename__ = 'order_participants_prices'
 
@@ -109,6 +126,7 @@ class OrderParticipantPrice(BaseModel):
     personal_order_positions = db.relationship("PersonalOrderPosition", back_populates="price",
                                                cascade="all, delete-orphan")
 
+
 class OrderParticipantLastPrice(BaseModel):
     __tablename__ = 'order_participants_last_prices'
 
@@ -123,6 +141,7 @@ class OrderParticipantLastPrice(BaseModel):
     price = db.relationship("OrderParticipantPrice", back_populates="last_price")
     order_item = db.relationship("OrderItem", back_populates="last_prices")
 
+
 class Status(BaseModel):
     __tablename__ = 'statuses'
 
@@ -133,6 +152,7 @@ class Status(BaseModel):
     # Связи
     participants = db.relationship("OrderParticipant", back_populates="status")
     orders = db.relationship("Order", back_populates="status")
+
 
 class PersonalOrder(BaseModel):
     __tablename__ = 'personal_orders'
@@ -145,6 +165,7 @@ class PersonalOrder(BaseModel):
     user = db.relationship("User", back_populates="personal_orders")
     order = db.relationship("Order", back_populates="personal_orders")
     positions = db.relationship("PersonalOrderPosition", back_populates="personal_order", cascade="all, delete-orphan")
+
 
 class PersonalOrderPosition(BaseModel):
     __tablename__ = 'personal_order_positions'

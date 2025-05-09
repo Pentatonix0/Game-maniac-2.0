@@ -6,7 +6,7 @@ import { FiAlertCircle } from 'react-icons/fi';
 import { login } from '../utils/auth';
 import InputField from '../components/common/universal_components/InputField';
 
-const LoginPage = () => {
+const SignInPage = () => {
     const navigate = useNavigate();
     const [loginError, setLoginError] = useState(null);
 
@@ -38,8 +38,8 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="flex items-center justify-center">
-            <div className="mt-24 max-w-md w-full bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] animate-fade-in">
+        <div className="min-h-screen bg-[#18181A] flex items-center justify-center">
+            <div className=" max-w-md w-full bg-[#222224] border border-1 border-gray-600 p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] animate-fade-in">
                 <h1 className="text-3xl font-semibold text-white text-center mb-6">
                     Sign in
                 </h1>
@@ -122,4 +122,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default SignInPage;

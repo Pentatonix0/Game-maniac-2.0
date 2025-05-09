@@ -10,8 +10,8 @@ const Error404Page = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#1a1a1c]">
-            <div className="bg-[#222224] max-w-md w-full p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] text-center">
+        <div className="min-h-screen bg-[#18181A] flex items-center justify-center sm:px-6 lg:px-8 bg-[#1a1a1c]">
+            <div className="bg-[#222224] max-w-md w-full p-8 border border-1 border-gray-600 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] text-center">
                 <FiAlertTriangle className="text-orange-500 text-5xl mx-auto mb-4" />
                 <h1 className="text-3xl font-bold text-white mb-2">
                     Error 404

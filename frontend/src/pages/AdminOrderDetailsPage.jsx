@@ -248,18 +248,22 @@ const AdminOrderDetailsPage = () => {
     }, [orderId]);
 
     return (
-        <div className="flex items-center justify-center py-12">
-            <div className="bg-[#222224] w-full max-w-4xl p-8 rounded-lg shadow-[0px_0px_1px_0px_rgba(255,255,255)]">
-                {loading ? (
+        <div className="min-h-screen flex justify-center py-12 min-h-screen bg-[#18181A]">
+            {loading ? (
+                <div className="flex flex-col items-center justify-center bg-[#222224] items-center w-full max-w-4xl rounded-lg shadow-[0px_0px_1px_0px_rgba(255,255,255)]">
                     <Loading />
-                ) : orderDetails.id == null ? (
+                </div>
+            ) : orderDetails.id == null ? (
+                <div className="flex flex-col h-20 items-center justify-center bg-[#222224] w-full max-w-4xl rounded-lg shadow-[0px_0px_1px_0px_rgba(255,255,255)]">
                     <div className="text-center text-base text-white">
                         Нет данных о заказе
                     </div>
-                ) : (
+                </div>
+            ) : (
+                <div className="bg-[#222224] w-full max-w-4xl p-8 rounded-lg shadow-[0px_0px_1px_0px_rgba(255,255,255)]">
                     <ActiveOrderContent data={orderDetails} />
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -6,7 +6,7 @@ const Footer = ({ companyName = 'Good price' }) => {
 
     return (
         <footer
-            className="bg-[#18181A] py-8 border-t border-gray-600 mt-auto shadow-[0_-4px_6px_rgba(0,0,0,0.2)]"
+            className="bg-[#18181A] py-8 border-t border-gray-600 mt-auto"
             aria-label="Site footer"
         >
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">

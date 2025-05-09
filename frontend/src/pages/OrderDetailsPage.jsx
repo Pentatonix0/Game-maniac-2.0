@@ -123,8 +123,8 @@ const OrderDetail = () => {
 
     if (!loading && order.id == null) {
         return (
-            <div className="py-12 flex justify-center">
-                <div className="bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] max-w-md w-full text-center">
+            <div className="min-h-screen bg-[#18181A] py-12 flex justify-center">
+                <div className="flex-col justify-center items-center h-48 bg-[#222224] p-8 rounded-2xl border border-1 border-gray-600 shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] max-w-md text-center">
                     <FiAlertCircle className="text-orange-500 text-4xl mx-auto mb-4" />
                     <h2 className="text-xl font-semibold text-white mb-2">
                         Order not found
@@ -139,7 +139,7 @@ const OrderDetail = () => {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#18181A] flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-5xl">
                 <h1 className="text-3xl font-bold break-words text-white mb-6">
                     {order && !loading ? order.order.title : 'Loading Order...'}

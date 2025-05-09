@@ -129,7 +129,7 @@ const CreateOrder = () => {
     };
 
     return (
-        <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#18181A] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="bg-[#222224] w-full max-w-4xl p-8 rounded-lg shadow-[0px_0px_1px_0px_rgba(255,255,255)]">
                 <h1 className="text-3xl font-base text-white text-center mb-4">
                     Создание нового заказа
