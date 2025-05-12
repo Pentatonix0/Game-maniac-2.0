@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from './auth'; // Предполагаем, что useAuth возвращает состояние авторизации
 import Error404Page from '../pages/Error404Page';
+import AuthRequiredPage from '../pages/AuthRequiredPage';
 
 const PrivateRoute = ({ children, adminRequired = false }) => {
     const [loading, setLoading] = useState(true);
@@ -17,11 +18,10 @@ const PrivateRoute = ({ children, adminRequired = false }) => {
         return null;
     }
     // Если пользователь не авторизован, перенаправляем на страницу входа
-    if (
-        !logged ||
-        (adminRequired && !isAdmin) ||
-        (logged && !adminRequired && isAdmin)
-    ) {
+    if (!logged) {
+        return <AuthRequiredPage />;
+    }
+    if ((adminRequired && !isAdmin) || (logged && !adminRequired && isAdmin)) {
         return <Error404Page />;
     }
 

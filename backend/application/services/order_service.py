@@ -2,6 +2,7 @@ from application.services.db_service import *
 from application.services.excel_service import ExcelService
 from datetime import datetime, timezone
 import dateutil.parser
+import re
 
 
 class OrderService:
@@ -41,7 +42,7 @@ class OrderService:
                 for order_item in order.order_items:
                     price = OrderParticipantPriceDBService.create_order_participant_price(participant.id, order_item.id,
                                                                                           price=None)
-                    OrderParticipantLastPriceDBSercice.create_order_participant_last_price(participant.id, price.id,
+                    OrderParticipantLastPriceDBService.create_order_participant_last_price(participant.id, price.id,
                                                                                            order_item.id)
             response_object = {
                 'status': 'success',
@@ -107,6 +108,24 @@ class OrderService:
             return response_object
 
     @staticmethod
+    def get_all_user_open_participation(username):
+        try:
+            participation = [prt for prt in OrderDBService.get_all_participation(username) if
+                             prt.status.code not in [111, 107]]
+            response_object = {
+                "status": "success",
+                "response": participation
+            }
+            return response_object
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object
+
+    @staticmethod
     def get_admin_order_content(order_id):
         try:
             order = OrderDBService.get_order_by_id(order_id)
@@ -122,8 +141,10 @@ class OrderService:
     @staticmethod
     def get_user_order_content(username, order_id):
         try:
-            order = OrderParticipantDBService.get_participant(username, order_id)
-            return order, 200
+            participant = OrderParticipantDBService.get_participant(username, order_id)
+            if participant.order.status.code in [205]:
+                return {}, 200
+            return participant, 200
         except Exception as e:
             print(e)
             response_object = {
@@ -149,9 +170,8 @@ class OrderService:
                 comment = price_dict["comment"]
                 new_price = OrderParticipantPriceDBService.create_order_participant_price(participant.id, order_item_id,
                                                                                           price, comment)
-                OrderParticipantLastPriceDBSercice.update_last_price_price_id(last_price, new_price.id)
+                OrderParticipantLastPriceDBService.update_last_price_price_id(last_price, new_price.id)
             OrderParticipantDBService.update_participant_status(participant, new_status.id)
-            OrderParticipantDBService.set_is_participating(participant, True)
             response_object = {
                 'status': 'success',
                 'responce': {'status': 'success'}
@@ -167,7 +187,8 @@ class OrderService:
 
     @staticmethod
     def get_current_order_state(order_id):
-        active_participants = OrderParticipantDBService.get_all_active_participants(order_id)
+        order = OrderDBService.get_order_by_id(order_id)
+        active_participants = [prt for prt in order.participants if prt.status.code not in [111]]
         order_items = OrderItemDBService.get_all_order_items(order_id)
         summary = {order_item.item.name: {'name': order_item.item.name, 'amount': order_item.amount} for
                    order_item in
@@ -209,8 +230,8 @@ class OrderService:
     @staticmethod
     def get_all_order_participants(order_id):
         try:
-            participants = [prt for prt in OrderParticipantDBService.get_all_active_participants(order_id) if
-                            prt.status.code not in [111]]
+            order = OrderDBService.get_order_by_id(order_id)
+            participants = [prt for prt in order.participants if prt.status.code not in [111]]
             return participants, 200
         except Exception as e:
             print(e)
@@ -223,7 +244,6 @@ class OrderService:
     @staticmethod
     def start_bidding(order_id, data):
         try:
-
             deadline = data.get('deadline')
             deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
             order = OrderDBService.get_order_by_id(order_id)
@@ -238,11 +258,12 @@ class OrderService:
                 tmp = [lp for lp in last_prices if lp.price.price and lp.price.price not in [None, 0]]
                 if len(tmp) > 0:
                     lowest_last_price = min(tmp, key=lambda x: x.price.price)
-                    OrderParticipantLastPriceDBSercice.set_is_the_best_price(lowest_last_price, True)
+                    OrderParticipantLastPriceDBService.set_is_the_best_price(lowest_last_price, True)
+                    recommended_price = round(lowest_last_price.price.price - 2)
+                    OrderItemDBService.set_recommended_price(item.id, recommended_price)
                     for last_price in tmp:
                         if last_price.id != lowest_last_price.id:
-                            OrderParticipantLastPriceDBSercice.set_is_the_best_price(last_price, False)
-            # bidding_participants = [prt for prt in order.participants if prt.status.code != 100]
+                            OrderParticipantLastPriceDBService.set_is_the_best_price(last_price, False)
             for participant in order.participants:
                 if participant.status.code in [100, 111]:
                     OrderParticipantDBService.set_participant_status_id(participant, suspended_status.id)
@@ -331,7 +352,7 @@ class OrderService:
 
             response_object = {
                 'status': 'success',
-                'message': 'Order deadline succesfully updated'
+                'message': 'Order deadline successfully updated'
             }
             return response_object, 200
 
@@ -365,12 +386,82 @@ class OrderService:
         except Exception as e:
             print(e)
 
+    @classmethod
+    def prepare_to_personal_orders(cls, order_id):
+        order = OrderDBService.get_order_by_id(order_id)
+        bidding_participants = [prt for prt in order.participants if prt.status.code not in [111]]
+        new_order_status = StatusDBService.get_status_by_status_code(205)
+        new_participant_status = StatusDBService.get_status_by_status_code(107)
+        OrderDBService.set_order_status(order, new_order_status)
+        for participant in bidding_participants:
+            OrderParticipantDBService.set_participant_status_id(participant, new_participant_status.id)
+
     @staticmethod
     def create_personal_orders(order_id, file):
         summary = ExcelService.from_summary(file)
         order = OrderDBService.get_order_by_id(order_id)
-        active_participants = OrderParticipantDBService.get_all_active_participants(order_id)
+        bidding_participants = [prt for prt in order.participants if prt.status.code not in [111]]
         item_prices_dict = {order_item.item.name: order_item.last_prices for order_item in order.order_items}
-        print(summary)
-        print(item_prices_dict)
-        return {}, 200
+        valid_pattern = r'^\d+(\.\d+)?(\\i|\\p)?$'
+        personal_orders_dict = {prt.user.company: list() for prt in bidding_participants}
+        personal_orders = PersonalOrderDBService.get_personal_orders(order_id)
+        if personal_orders:
+            for personal_order in personal_orders:
+                personal_order.delete()
+        for game in summary:
+            if len(summary[game]) == 0:
+                continue
+            min_price = [10 ** 10, None]
+            for company, price in summary[game].items():
+                price_str = str(price).replace(',', '.')
+                if not re.match(valid_pattern, price_str):
+                    raise ValueError(f"Недопустимый формат цены для {game}: {price}. "
+                                     "Допустимые форматы: число, число\\i, число\\p")
+                if "\p" in price_str:
+                    print(price_str)
+                    min_price = [float(price_str[:-2]),
+                                 next(lp for lp in item_prices_dict[game] if lp.participant.user.company == company)]
+                    break
+                elif "\i" not in price_str:
+                    price_float = float(price_str)
+                    if price_float < min_price[0]:
+                        min_price = [price_float, next(
+                            lp for lp in item_prices_dict[game] if lp.participant.user.company == company)]
+
+            personal_orders_dict[min_price[1].participant.user.company].append(min_price[1].price)
+        for company in personal_orders_dict:
+            user = UserDBService.get_user_by_company(company)
+            is_empty = len(personal_orders_dict[company]) == 0
+            personal_order = PersonalOrderDBService.create_personal_order(user.id, order.id, is_empty)
+            for price in personal_orders_dict[company]:
+                personal_order_position = PersonalOrderPositionDBService.create_personal_order_position(
+                    personal_order.id, price.id)
+            OrderService.prepare_to_personal_orders(order_id)
+        return 0
+
+    @staticmethod
+    def get_personal_orders(username):
+        user = UserDBService.get_user_by_username(username)
+        personal_orders = user.personal_orders
+        return personal_orders
+
+    @staticmethod
+    def get_personal_order_excel(personal_order_id):
+        summary = []
+        personal_order = PersonalOrderDBService.get_personal_orders_by_id(personal_order_id)
+        positions = personal_order.positions
+        for position in positions:
+            position_dict = {
+                "name": position.price.order_item.item.name,
+                "amount": position.price.order_item.amount,
+                "price": position.price.price
+            }
+            summary.append(position_dict)
+        file_stream = ExcelService.make_person_order_excel(summary)
+        return file_stream
+
+    @staticmethod
+    def get_all_order_personal_orders(order_id):
+        order = OrderDBService.get_order_by_id(order_id)
+        personal_orders = order.personal_orders
+        return personal_orders

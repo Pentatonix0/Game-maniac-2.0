@@ -27,7 +27,8 @@ class OrderDTO:
         {
             "id": fields.Integer(),
             "item": fields.Nested(item_model),
-            "amount": fields.Integer()
+            "amount": fields.Integer(),
+            "recommended_price": fields.Integer()
         }
     )
 
@@ -121,5 +122,15 @@ class OrderDTO:
             "participants": fields.List(fields.Nested(order_participant_status_model)),
             "order_items": fields.List(fields.Nested(order_item_model)),
             "deadline": fields.DateTime()
+        }
+    )
+
+    personal_order_model = namespace.model(
+        "PersonalOrder",
+        {
+            "id": fields.Integer(),
+            "user":fields.Nested(UserDTO.user_model),
+            "order": fields.Nested(order_preview_model),
+            "is_empty": fields.Boolean()
         }
     )

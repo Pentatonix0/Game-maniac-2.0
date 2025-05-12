@@ -10,6 +10,7 @@ import CreateOrder from './pages/CreateOrderPage';
 import AdminOrderDetailsPage from './pages/AdminOrderDetailsPage';
 import UsersPage from './pages/UsersPage';
 import Error404Page from './pages/Error404Page';
+import PersonalOrderPage from './pages/PersonalOrdersPage';
 
 const RouterProvider = () => {
     return (
@@ -49,6 +50,14 @@ const RouterProvider = () => {
                         element={
                             <PrivateRoute adminRequired={true}>
                                 <AdminOrderDetailsPage />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/my_orders"
+                        element={
+                            <PrivateRoute>
+                                <PersonalOrderPage />
                             </PrivateRoute>
                         }
                     />

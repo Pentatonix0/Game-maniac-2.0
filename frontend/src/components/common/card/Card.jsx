@@ -6,6 +6,7 @@ import axios from 'axios';
  * Константы для стилей и статусов
  */
 const STATUS_CLASSES = {
+    // Client-side statuses
     100: {
         button: 'bg-[#FF5F00] text-white hover:bg-red-600 hover:shadow-[0_0_8px_rgba(255,95,0,0.6)] focus:ring-orange-500',
         text: 'text-red-500 animate-pulse font-bold text-xl',
@@ -40,6 +41,23 @@ const STATUS_CLASSES = {
         button: 'bg-[#39393A] border-2 border-[#4ADE80] hover:bg-[#4A4A4C] hover:shadow-[0_0_8px_rgba(74,222,128,0.6)] focus:ring-[#4ADE80]',
         text: 'text-[#4ADE80]',
         label: 'Soon you will get an order',
+    },
+    // Admin-side statuses
+    200: {
+        text: 'text-green-400',
+        label: 'Order created, active',
+    },
+    203: {
+        text: 'text-[#faed27]',
+        label: 'Bidding',
+    },
+    205: {
+        text: 'text-blue-400',
+        label: 'Finished, personal orders created',
+    },
+    207: {
+        text: 'text-gray-400',
+        label: 'Archived',
     },
 };
 
@@ -333,8 +351,14 @@ const ProviderCard = ({
  * @param {number} props.orderId - ID заказа
  * @param {string} props.title - Название заказа
  * @param {string} props.description - Описание заказа
+ * @param {number} props.status - Код статуса заказа
  */
-const AdminCard = ({ orderId, title, description }) => {
+const AdminCard = ({ orderId, title, description, status }) => {
+    const statusConfig = STATUS_CLASSES[status] || {
+        text: 'text-gray-400',
+        label: 'Unknown',
+    };
+
     return (
         <div className={CARD_CLASSES} aria-label={`Order ${title}`}>
             <h2 className="text-lg font-semibold text-[#d1d1d1] mb-4 animate-fade-in break-words overflow-hidden">
@@ -343,7 +367,12 @@ const AdminCard = ({ orderId, title, description }) => {
             <p className="text-sm text-gray-500 mb-6 flex-grow animate-fade-in break-words overflow-auto max-h-24">
                 {description}
             </p>
-            <div className="flex justify-end mt-auto">
+            <div className="flex justify-between items-center">
+                <div
+                    className={`text-xs font-base ${statusConfig.text} animate-fade-in`}
+                >
+                    {statusConfig.label}
+                </div>
                 <Link to={`/order_details/${orderId}`}>
                     <button
                         className="bg-[#FF5F00] text-white text-base px-6 py-3 rounded-lg font-base hover:bg-red-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(255,95,0,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
@@ -376,7 +405,12 @@ const OrderCard = ({
     isAdmin = false,
 }) => {
     return isAdmin ? (
-        <AdminCard orderId={orderId} title={title} description={description} />
+        <AdminCard
+            orderId={orderId}
+            title={title}
+            description={description}
+            status={status}
+        />
     ) : (
         <ProviderCard
             orderId={orderId}

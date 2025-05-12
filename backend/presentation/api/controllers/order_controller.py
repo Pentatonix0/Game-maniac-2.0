@@ -12,6 +12,7 @@ admin_order_model = OrderDTO.admin_order_model
 order_participant_preview_model = OrderDTO.order_participant_preview_model
 order_preview_model = OrderDTO.order_preview_model
 order_participant_status_model = OrderDTO.order_participant_status_model
+personal_order_model = OrderDTO.personal_order_model
 
 
 @order_ns.route('/create_admin_order')
@@ -52,7 +53,7 @@ class GetAllUserOrderParticipation(Resource):
     @jwt_required()
     def get(self):
         username = get_jwt_identity()
-        response_object = OrderService.get_all_user_participation(username)
+        response_object = OrderService.get_all_user_open_participation(username)
         if response_object["status"] == "success":
             response = response_object["response"]
             return order_ns.marshal(response, order_participant_preview_model), 200
@@ -158,6 +159,7 @@ class SetParticipantStatus(Resource):
         responce, code = OrderService.set_participant_status(username, data)
         return responce, code
 
+
 @order_ns.route('/update_deadline')
 class StartBidding(Resource):
     @order_ns.doc(params={'id': 'Id of the order'})
@@ -170,6 +172,7 @@ class StartBidding(Resource):
         data = request.json
         responce, code = OrderService.update_order_deadline(order_id, data)
         return responce, code
+
 
 @order_ns.route('/update_participant_deadline')
 class StartBidding(Resource):
@@ -184,6 +187,7 @@ class StartBidding(Resource):
         responce, code = OrderService.update_participant_deadline(participant_id, data)
         return responce, code
 
+
 @order_ns.route('/create_personal_orders')
 class CreatePersonalOrders(Resource):
     @order_ns.doc(params={'id': 'Id of the order'})
@@ -194,6 +198,114 @@ class CreatePersonalOrders(Resource):
         if not order_id:
             return {"message": "Id is required"}, 400
         file = request.files['file']
-        responce, code = OrderService.create_personal_orders(order_id, file)
-        return responce, code
+        try:
+            OrderService.create_personal_orders(order_id, file)
+            responce_object = {
+                "status": "success",
+                "message": "Personal order successfully created"
+            }
+            return responce_object, 201
+        except Exception as ex:
+            print(ex)
+            responce_object = {
+                "status": "fail",
+                "message": "Try again"
+            }
+            return responce_object, 400
+
+
+@order_ns.route('/get_personal_orders')
+class GetPersonalOrders(Resource):
+    @jwt_required()
+    def get(self):
+        username = get_jwt_identity()
+        try:
+            personal_orders = OrderService.get_personal_orders(username)
+            return order_ns.marshal(personal_orders, personal_order_model), 200
+        except Exception as ex:
+            print(ex)
+            responce_object = {
+                "status": "fail",
+                "message": "Try again"
+            }
+            return responce_object, 400
+
+
+@order_ns.route('/add_participant')
+class UnableParticipant(Resource):
+    @order_ns.doc(params={'id': 'Id of the user'})
+    @jwt_required()
+    @admin_required
+    def post(self):
+        pass
+
+
+@order_ns.route('/unable_participant')
+class UnableParticipant(Resource):
+    @order_ns.doc(params={'id': 'Id of the participant'})
+    @jwt_required()
+    @admin_required
+    def post(self):
+        pass
+
+
+@order_ns.route('/return_participant')
+class UnableParticipant(Resource):
+    @order_ns.doc(params={'id': 'Id of the participant'})
+    @jwt_required()
+    @admin_required
+    def post(self):
+        pass
+
+@order_ns.route('/get_all_order_personal_orders')
+class GetAllPersonalOrders(Resource):
+    @order_ns.doc(params={'id': 'Id of the order'})
+    @jwt_required()
+    @admin_required
+    def get(self):
+        try:
+            order_id = request.args.get('order_id')
+            if not order_id:
+                return {"message": "Id is required"}, 400
+            personal_orders = OrderService.get_all_order_personal_orders(order_id)
+            return order_ns.marshal(personal_orders, personal_order_model), 200
+        except Exception as ex:
+            print(ex)
+            responce_object = {
+                "status": "fail",
+                "message": "Try again"
+            }
+            return responce_object, 400
+
+
+
+@order_ns.route('/download_personal_order')
+class DownloadPersonalOrder(Resource):
+    @order_ns.doc(params={'id': 'Id of the personal order'})
+    @order_ns.doc(params={'filename': 'Name of the file'})
+    @jwt_required()
+    def get(self):
+        try:
+            personal_order_id = request.args.get('personal_order_id')
+            filename = request.args.get('filename')
+            if not personal_order_id:
+                return {"message": "Id is required"}, 400
+            if not filename:
+                return {"message": "Filename is required"}, 400
+
+            file_stream = OrderService.get_personal_order_excel(personal_order_id)
+            return send_file(
+                file_stream,
+                as_attachment=True,
+                download_name=f'{filename}.xlsx',
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        except Exception as ex:
+            print(ex)
+            responce_object = {
+                "status": "fail",
+                "message": "Try again"
+            }
+            return responce_object, 400
+
 

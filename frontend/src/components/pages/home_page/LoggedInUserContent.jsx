@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import OrderCard from '../../common/card/Card';
+import Loading from '../../common/universal_components/Loading';
 import axios from 'axios';
 
 const LoggedInUserContent = () => {
@@ -37,6 +38,7 @@ const LoggedInUserContent = () => {
             </h1>
 
             <div className="bg-[#222224] p-8 rounded-3xl shadow-base mt-2 border border-1 border-gray-600">
+                {loading && <Loading />}
                 {orders.length === 0 && !loading && (
                     <div className="text-center text-base text-white">
                         No open orders

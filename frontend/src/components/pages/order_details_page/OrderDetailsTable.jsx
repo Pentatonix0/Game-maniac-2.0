@@ -80,31 +80,45 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                 </td>
                 <td className={`border p-2 max-w-[150px] ${priceCellBgClass}`}>
                     {isEditable ? (
-                        <InputFieldArrow
-                            id={`price-${itemId}`}
-                            type="numeric"
-                            register={register}
-                            errors={errors}
-                            validation={{
-                                min: {
-                                    value: 0,
-                                    message: 'Price can not be less than zero',
-                                },
-                                max: {
-                                    value: 100000,
-                                    message:
-                                        'Price can not be more than 100000',
-                                },
-                            }}
-                            labelClassName="text-gray-800"
-                            defaultValue={
-                                item.price?.price
-                                    ? parseFloat(item.price?.price)
-                                    : null
-                            }
-                            onKeyDown={(event) => handleKeyDown(event, index)}
-                            ref={(el) => (inputRefs.current[index] = el)}
-                        />
+                        <div>
+                            <InputFieldArrow
+                                id={`price-${itemId}`}
+                                type="numeric"
+                                register={register}
+                                errors={errors}
+                                validation={{
+                                    min: {
+                                        value: 0,
+                                        message:
+                                            'Price can not be less than zero',
+                                    },
+                                    max: {
+                                        value: 100000,
+                                        message:
+                                            'Price can not be more than 100000',
+                                    },
+                                }}
+                                labelClassName="text-gray-800"
+                                defaultValue={
+                                    item.price?.price
+                                        ? parseFloat(item.price?.price)
+                                        : null
+                                }
+                                onKeyDown={(event) =>
+                                    handleKeyDown(event, index)
+                                }
+                                ref={(el) => (inputRefs.current[index] = el)}
+                            />
+                            {isBestPrice ? (
+                                <div className="flex justify-center text-white text-xs">
+                                    Your price is the best!
+                                </div>
+                            ) : (
+                                <div className="flex justify-center text-white text-xs">
+                                    {`Recommended price: ${item.price.order_item.recommended_price}`}
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <div className="text-gray-200">
                             {item.price?.price

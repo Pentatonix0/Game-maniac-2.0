@@ -87,6 +87,18 @@ class ExcelService:
                 order_data.append(row_dict)
         summary = {item['name']: {key: value for key, value in item.items() if
                                   not re.match(r"^comment_\d+$", key)
-                                  and key not in ['name', 'amount']} for item in
+                                  and key not in ['name', 'amount'] and not pd.isna(value)} for item in
                    order_data}
         return summary
+
+    @staticmethod
+    def make_person_order_excel(summary):
+        df = pd.DataFrame(summary)
+        df['price'] = df['price'].astype(float)
+
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Order')
+        output.seek(0)
+        return output

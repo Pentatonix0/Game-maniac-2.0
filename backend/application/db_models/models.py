@@ -1,5 +1,5 @@
-from email.policy import default
 from exts import db
+from sqlalchemy import UniqueConstraint
 
 
 class BaseModel(db.Model):
@@ -80,6 +80,7 @@ class OrderItem(BaseModel):
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete="CASCADE"))
     item_id = db.Column(db.Integer, db.ForeignKey('items.id', ondelete="CASCADE"))
     amount = db.Column(db.Integer)
+    recommended_price = db.Column(db.Numeric(10, 2), default=None)
 
     # Связи с каскадным удалением
     orders = db.relationship("Order", back_populates="order_items")
@@ -160,11 +161,17 @@ class PersonalOrder(BaseModel):
     id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="CASCADE"))
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete="CASCADE"))
+    is_empty = db.Column(db.Boolean, default=True)
 
     # Связи с каскадным удалением
     user = db.relationship("User", back_populates="personal_orders")
     order = db.relationship("Order", back_populates="personal_orders")
     positions = db.relationship("PersonalOrderPosition", back_populates="personal_order", cascade="all, delete-orphan")
+
+    # Уникальный индекс для комбинации user_id и order_id
+    __table_args__ = (
+        UniqueConstraint('user_id', 'order_id', name='unique_user_order'),
+    )
 
 
 class PersonalOrderPosition(BaseModel):
@@ -177,3 +184,8 @@ class PersonalOrderPosition(BaseModel):
     # Связи
     personal_order = db.relationship("PersonalOrder", back_populates="positions")
     price = db.relationship("OrderParticipantPrice", back_populates="personal_order_positions")
+
+    # Уникальный индекс для комбинации personal_order_id и price_id
+    __table_args__ = (
+        UniqueConstraint('personal_order_id', 'price_id', name='unique_personal_order_price'),
+    )

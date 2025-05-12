@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     FaCloudDownloadAlt,
@@ -8,6 +8,7 @@ import {
     FaUserPlus,
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { statusDictionary } from '../../../constants/StatusDictionary';
 
 const OrderActions = ({
     status,
@@ -28,6 +29,72 @@ const OrderActions = ({
     const [selectedParticipantId, setSelectedParticipantId] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [isFileUploading, setIsFileUploading] = useState(false);
+    const [personalOrders, setPersonalOrders] = useState([]);
+
+    useEffect(() => {
+        const fetchAllPersonalOrders = async () => {
+            try {
+                const response = await fetch(
+                    `/api/order/get_all_order_personal_orders?order_id=${orderId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token.access_token}`,
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch orders');
+                }
+
+                const data = await response.json();
+                console.log(data);
+                setPersonalOrders(data);
+                setLoading(false);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        if (status.code === 205) {
+            fetchAllPersonalOrders();
+        }
+    }, []);
+
+    const handleDownloadPersonalOrder = async (personalOrder) => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get(
+                `/api/order/download_personal_order?personal_order_id=${personalOrder.id}&filename=${personalOrder.order.title}_${personalOrder.user.company}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token.access_token}`,
+                    },
+                    responseType: 'blob',
+                }
+            );
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${personalOrder.order.title}_${personalOrder.user.company}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error fetching summary:', error);
+            toast.error('Dowloading failed', {
+                position: 'top-right',
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: 'dark',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleDeleteOrder = async () => {
         const confirmed = window.confirm(
@@ -104,6 +171,8 @@ const OrderActions = ({
             setIsLoading(false);
         }
     };
+
+    const handleRequestPersonalOrders = async () => {};
 
     const handleStartBidding = () => {
         setIsBiddingModalOpen(true);
@@ -316,7 +385,7 @@ const OrderActions = ({
                     },
                 }
             );
-            if (response.status === 200) {
+            if (response.status === 201) {
                 toast.success('Персональные заказы успешно созданы', {
                     position: 'top-right',
                     autoClose: 3000,
@@ -446,19 +515,17 @@ const OrderActions = ({
                                         <th className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
                                             ID поставщика
                                         </th>
-                                        <th className="text-base font-base text-white px-4 py-2 border-b">
+                                        <th className="text-base font-base text-white px-4 py-2 border-b  border-r">
                                             Участвует
+                                        </th>
+                                        <th className="text-base font-base text-white px-4 py-2 border-b">
+                                            Действия
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {participants &&
                                         participants.map((participant) => {
-                                            const isParticipating =
-                                                participant.status.code !==
-                                                    100 &&
-                                                participant.status.code !== 111;
-
                                             return (
                                                 <tr key={participant.user.id}>
                                                     <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
@@ -467,10 +534,35 @@ const OrderActions = ({
                                                                 .company
                                                         }
                                                     </td>
-                                                    <td className="px-4 py-2 border-b text-center">
-                                                        {isParticipating
-                                                            ? '✅'
-                                                            : '❌'}
+                                                    <td className="px-4 py-2 border-b border-r text-center">
+                                                        {
+                                                            statusDictionary[
+                                                                participant
+                                                                    .status.code
+                                                            ].emoji
+                                                        }
+                                                    </td>
+                                                    <td className=" px-4 py-2 border-b ">
+                                                        <div className="flex justify-center">
+                                                            {participant.status
+                                                                .code ===
+                                                            111 ? (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        openParticipantDeadlineModal(
+                                                                            participant.id
+                                                                        )
+                                                                    }
+                                                                    className="h-8 bg-gradient-to-r from-green-600 to-green-500 text-white text-sm px-3 py-1 rounded-lg hover:from-green-700 hover:to-green-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(74,222,128,0.6)] focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                                                >
+                                                                    Вернуть
+                                                                </button>
+                                                            ) : (
+                                                                <button className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200">
+                                                                    Отстранить
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -569,11 +661,6 @@ const OrderActions = ({
                                 <tbody>
                                     {participants &&
                                         participants.map((participant) => {
-                                            const isParticipating =
-                                                participant.status.code ===
-                                                    104 ||
-                                                participant.status.code === 106;
-
                                             return (
                                                 participant.status.code !=
                                                     111 && (
@@ -589,9 +676,13 @@ const OrderActions = ({
                                                             }
                                                         </td>
                                                         <td className="px-4 py-2 border-b text-center border-r border-gray-300">
-                                                            {isParticipating
-                                                                ? '✅'
-                                                                : '❌'}
+                                                            {
+                                                                statusDictionary[
+                                                                    participant
+                                                                        .status
+                                                                        .code
+                                                                ].emoji
+                                                            }
                                                         </td>
                                                         <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
                                                             {formatRemainingTime(
@@ -693,55 +784,61 @@ const OrderActions = ({
             case 205:
                 return (
                     <>
-                        <h3 className="text-base font-semibold text-white mt-6 mb-4">
-                            Разрешенные поставщики:
-                        </h3>
-                        <p className="text-base font-base text-gray-300 mb-4">
-                            <strong className="text-base font-base text-white">
-                                Осталось до окончания торгов:
-                            </strong>{' '}
-                            {formatRemainingTime(order_deadline)}
-                        </p>
-                        <div className="bg-[#39393A] p-6 rounded-lg mt-4 mb-8 shadow-[0px_0px_0px_1px_rgba(125,125,128)]">
+                        <div className="bg-[#39393A] p-6 rounded-lg mt-4 mb-4 shadow-[0px_0px_0px_1px_rgba(125,125,128)]">
                             <table className="min-w-full table-auto border-collapse border border-gray-300">
                                 <thead>
                                     <tr>
                                         <th className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
                                             Поставщик
                                         </th>
-                                        <th className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                            Участвует в торгах
-                                        </th>
+
                                         <th className="text-base font-base text-white px-4 py-2 border-b">
-                                            Оставшееся время
+                                            Действия
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {participants &&
-                                        participants.map((participant) => {
-                                            const isParticipating =
-                                                participant.status.code >=
-                                                    104 &&
-                                                participant.status.code <= 106;
-
+                                    {personalOrders &&
+                                        personalOrders.map((personalOrder) => {
                                             return (
-                                                <tr key={participant.user.id}>
+                                                <tr key={personalOrder.id}>
                                                     <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
                                                         {
-                                                            participant.user
+                                                            personalOrder.user
                                                                 .company
                                                         }
                                                     </td>
-                                                    <td className="px-4 py-2 border-b text-center border-r border-gray-300">
-                                                        {isParticipating
-                                                            ? '✅'
-                                                            : '❌'}
-                                                    </td>
-                                                    <td className="text-base font-base text-white px-4 py-2 border-b">
-                                                        {formatRemainingTime(
-                                                            participant.deadline
-                                                        )}
+                                                    <td className=" px-4 py-2 border-b ">
+                                                        <div className="flex justify-center">
+                                                            {personalOrder.is_empty ? (
+                                                                <div className="px-4 py-2 w-32 text-white text-sm font-medium rounded-md border border-1 border-red-500">
+                                                                    Заказ пустой
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleDownloadPersonalOrder(
+                                                                            personalOrder
+                                                                        )
+                                                                    }
+                                                                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2"
+                                                                    aria-label={`Download order ${personalOrder.order.title}`}
+                                                                >
+                                                                    {isLoading ? (
+                                                                        <span>
+                                                                            Загрузка...
+                                                                        </span>
+                                                                    ) : (
+                                                                        <>
+                                                                            <span>
+                                                                                Скачать
+                                                                                заказ
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -766,7 +863,30 @@ const OrderActions = ({
                                     ) : (
                                         <>
                                             <FaCloudDownloadAlt className="text-lg" />
-                                            <span>Скачать сводку</span>
+                                            <span className="text-xs">
+                                                Скачать последнюю сводку
+                                            </span>
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={handleRequestSummary}
+                                    disabled={isLoading}
+                                    className={`w-48 h-12 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
+                                        isLoading
+                                            ? 'opacity-50 cursor-not-allowed'
+                                            : ''
+                                    }`}
+                                    aria-label="Скачать сводку заказа"
+                                >
+                                    {isLoading ? (
+                                        <span>Загрузка...</span>
+                                    ) : (
+                                        <>
+                                            <FaCloudDownloadAlt className="text-lg" />
+                                            <span className="text-xs">
+                                                Скачать все персональные заказы
+                                            </span>
                                         </>
                                     )}
                                 </button>
@@ -807,7 +927,7 @@ const OrderActions = ({
                                     {isFileUploading ? (
                                         <span>Загрузка...</span>
                                     ) : (
-                                        <span>Создать заказы</span>
+                                        <span>Обновить заказы</span>
                                     )}
                                 </button>
                             </div>

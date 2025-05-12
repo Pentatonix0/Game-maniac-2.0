@@ -16,6 +16,7 @@ Admin-side statuses
 200 - order created, active
 203 - bidding
 205 - finished, personal orders created
+207 - archived
 
 
 Client-side personal statuses

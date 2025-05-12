@@ -69,6 +69,7 @@ const LoggedInAdminContent = () => {
                                 orderId={order.id}
                                 title={order.title}
                                 description={order.description}
+                                status={order.status.code}
                                 isAdmin={true}
                             />
                         ))}

@@ -15,15 +15,17 @@ class PrimaryInitializationDBService:
             {"status_code": 101, "status_message": "participating, open to editing"},
             {"status_code": 102, "status_message": "participating, close to editing"},
             {"status_code": 103, "status_message": "bidding, open to editing"},
-            {"status_code": 104, "status_message": "bidding, close to editing"},
-            {"status_code": 105, "status_message": "bidding finished"},
-            {"status_code": 106, "status_message": "personal orders created"},
+            {"status_code": 104, "status_message": "participating in bidding, open to editing"},
+            {"status_code": 105, "status_message": "have not participated in bidding, close to editing"},
+            {"status_code": 106, "status_message": "have participated in bidding, close to editing"},
+            {"status_code": 107, "status_message": "personal orders created"},
             {"status_code": 111, "status_message": "suspended from the order"},
 
             # Admin-side statuses
             {"status_code": 200, "status_message": "order created, active"},
             {"status_code": 203, "status_message": "bidding"},
             {"status_code": 205, "status_message": "finished, personal orders created"},
+            {"status_code": 207, "status_message": "archived"},
 
             # Client-side personal statuses
             {"status_code": 300, "status_message": "personal order created"},
@@ -50,6 +52,11 @@ class UserDBService:
     @staticmethod
     def get_user_by_username(username):
         user = User.query.filter_by(username=username).first()
+        return user
+
+    @staticmethod
+    def get_user_by_company(company):
+        user = User.query.filter_by(company=company).first()
         return user
 
     @staticmethod
@@ -188,6 +195,12 @@ class OrderItemDBService:
         order = OrderDBService.get_order_by_id(order_id)
         return order.order_items
 
+    @staticmethod
+    def set_recommended_price(order_item_id, price):
+        order_item = OrderItem.query.filter_by(id=order_item_id).first()
+        order_item.recommended_price = price
+        order_item.save()
+
 
 class OrderParticipantDBService:
     @staticmethod
@@ -213,24 +226,6 @@ class OrderParticipantDBService:
         return participant
 
     @staticmethod
-    def set_is_participating(participant, is_paricipating):
-        participant.is_participating = is_paricipating
-        participant.save()
-        return participant
-
-    @staticmethod
-    def get_all_active_participants(order_id):
-        order = OrderDBService.get_order_by_id(order_id)
-        return [prt for prt in order.participants if prt.status.code != 100]
-
-    # @staticmethod
-    # def delete_unactive_participants(order):
-    #     participants = order.participants
-    #     for participant in participants:
-    #         if participants.status.code == 100:
-    #             participant.delete()
-
-    @staticmethod
     def set_participant_status_id(participant, status_id):
         participant.status_id = status_id
         participant.save()
@@ -252,7 +247,7 @@ class OrderParticipantPriceDBService:
         return order_participant_price
 
 
-class OrderParticipantLastPriceDBSercice:
+class OrderParticipantLastPriceDBService:
     @staticmethod
     def create_order_participant_last_price(order_participant_id, price_id, order_item_id):
         order_participant_last_price = OrderParticipantLastPrice(order_participant_id=order_participant_id,
@@ -285,8 +280,26 @@ class StatusDBService:
 
 
 class PersonalOrderDBService:
-    pass
+    @staticmethod
+    def create_personal_order(user_id, order_id, is_empty):
+        personal_order = PersonalOrder(user_id=user_id, order_id=order_id, is_empty=is_empty)
+        personal_order.save()
+        return personal_order
+
+    @staticmethod
+    def get_personal_orders(order_id):
+        personal_orders = PersonalOrder.query.filter_by(order_id=order_id).all()
+        return personal_orders
+
+    @staticmethod
+    def get_personal_orders_by_id(personal_order_id):
+        personal_order = PersonalOrder.query.filter_by(id=personal_order_id).first()
+        return personal_order
 
 
 class PersonalOrderPositionDBService:
-    pass
+    @staticmethod
+    def create_personal_order_position(personal_order_id, price_id):
+        personal_order_position = PersonalOrderPosition(personal_order_id=personal_order_id, price_id=price_id)
+        personal_order_position.save()
+        return personal_order_position

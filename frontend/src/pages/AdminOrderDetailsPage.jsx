@@ -34,6 +34,34 @@ const ActiveOrderContent = ({ data = [] }) => {
         defaultValues: { title, description },
     });
 
+    useEffect(() => {
+        const fetchAllPersonalOrders = async () => {
+            try {
+                const response = await fetch(
+                    `/api/order/get_all_personal_orders?${id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token.access_token}`,
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch orders');
+                }
+
+                const data = await response.json();
+                setOrders(data);
+                setLoading(false);
+            } catch (err) {
+                setError(err.message);
+            }
+        };
+        if (status.code === 205) {
+            fetchAllPersonalOrders();
+        }
+    }, []);
+
     const onSubmit = async (formData) => {
         try {
             const response = await axios.put(
@@ -143,12 +171,14 @@ const ActiveOrderContent = ({ data = [] }) => {
                         <h1 className="text-3xl font-base text-white break-words overflow-hidden">
                             {title}
                         </h1>
-                        <button
-                            onClick={toggleEdit}
-                            className="w-48 h-12 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-base px-6 py-3 rounded-lg font-base hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                        >
-                            Редактировать
-                        </button>
+                        {status.code != 205 && status.code != 207 && (
+                            <button
+                                onClick={toggleEdit}
+                                className="w-48 h-12 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-base px-6 py-3 rounded-lg font-base hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                            >
+                                Редактировать
+                            </button>
+                        )}
                     </div>
                     <p className="text-base font-base text-gray-300 mb-4 break-words overflow-auto max-h-48">
                         <strong className="text-base font-base text-white">
@@ -182,27 +212,6 @@ const ActiveOrderContent = ({ data = [] }) => {
                     />
                 </>
             )}
-            <ToastContainer
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="dark"
-                toastStyle={{
-                    backgroundColor: '#39393A',
-                    color: '#FFFFFF',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                }}
-                progressStyle={{
-                    background: 'linear-gradient(to right, #F97316, #F59E0B)',
-                }}
-            />
         </>
     );
 };

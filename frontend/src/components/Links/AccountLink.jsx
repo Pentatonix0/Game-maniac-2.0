@@ -6,9 +6,6 @@ const AccountLink = () => (
     <Link
         to="/"
         onClick={() => {
-            localStorage.removeItem('tokenRole');
-            localStorage.removeItem('tokenUsername');
-            localStorage.removeItem('token');
             logout();
         }}
         className="text-sm text-white hover:underline"
