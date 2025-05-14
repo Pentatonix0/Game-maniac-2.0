@@ -238,11 +238,12 @@ class OrderParticipantDBService:
 
 class OrderParticipantPriceDBService:
     @staticmethod
-    def create_order_participant_price(order_participant_id, order_item_id, price, comment=None):
+    def create_order_participant_price(order_participant_id, order_item_id, price, comment=None, last_participant_status_id=None):
         order_participant_price = OrderParticipantPrice(order_participant_id=order_participant_id,
                                                         order_item_id=order_item_id,
                                                         price=price,
-                                                        comment=comment)
+                                                        comment=comment,
+                                                        last_participant_status_id=last_participant_status_id)
         order_participant_price.save()
         return order_participant_price
 

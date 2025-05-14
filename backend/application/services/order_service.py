@@ -140,18 +140,9 @@ class OrderService:
 
     @staticmethod
     def get_user_order_content(username, order_id):
-        try:
-            participant = OrderParticipantDBService.get_participant(username, order_id)
-            if participant.order.status.code in [205]:
-                return {}, 200
-            return participant, 200
-        except Exception as e:
-            print(e)
-            response_object = {
-                "status": "fail",
-                "response": {}
-            }
-            return response_object, 500
+        participant = OrderParticipantDBService.get_participant(username, order_id)
+        return participant
+
 
     @staticmethod
     def offer_price(username, data):
@@ -159,6 +150,7 @@ class OrderService:
             order_id = data.get("order_id")
             prices = data.get("prices")
             participant = OrderParticipantDBService.get_participant(username, order_id)
+            status = participant.status
             new_code = 101
             if participant.status.code in [103, 104]:
                 new_code = 104
@@ -169,7 +161,7 @@ class OrderService:
                 price = price_dict["price"]
                 comment = price_dict["comment"]
                 new_price = OrderParticipantPriceDBService.create_order_participant_price(participant.id, order_item_id,
-                                                                                          price, comment)
+                                                                                          price, comment, status.id)
                 OrderParticipantLastPriceDBService.update_last_price_price_id(last_price, new_price.id)
             OrderParticipantDBService.update_participant_status(participant, new_status.id)
             response_object = {
@@ -437,6 +429,9 @@ class OrderService:
                 personal_order_position = PersonalOrderPositionDBService.create_personal_order_position(
                     personal_order.id, price.id)
             OrderService.prepare_to_personal_orders(order_id)
+        OrderDBService.set_deadline(order, None)
+        for participant in bidding_participants:
+            OrderParticipantDBService.set_participant_deadline(participant, None)
         return 0
 
     @staticmethod

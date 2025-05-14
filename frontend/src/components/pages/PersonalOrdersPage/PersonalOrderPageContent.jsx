@@ -5,38 +5,42 @@ import { toast } from 'react-toastify';
 import Loading from '../../common/universal_components/Loading';
 
 const PersonalOrderPageContent = () => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingStates, setLoadingStates] = useState({}); // Object to track loading state per button
     const [loading, setLoading] = useState(true);
     const [orders, setOrders] = useState([]);
     const [error, setError] = useState(null);
     const token = JSON.parse(localStorage.getItem('REACT_TOKEN_AUTH_KEY'));
 
     useEffect(() => {
-        const fetchOrders = async () => {
+        const getOrders = async () => {
             try {
-                const response = await fetch('/api/order/get_personal_orders', {
-                    headers: {
-                        Authorization: `Bearer ${token.access_token}`,
-                    },
-                });
+                const response = await axios.get(
+                    '/api/order/get_personal_orders',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token.access_token}`,
+                        },
+                    }
+                );
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch orders');
-                }
-
-                const data = await response.json();
-                setOrders(data);
+                setOrders(response.data);
                 setLoading(false);
             } catch (err) {
                 setError(err.message);
             }
         };
+        if (loading) {
+            getOrders();
+        }
+    }, [token]);
 
-        fetchOrders();
-    }, []);
+    const setButtonLoading = (key, isLoading) => {
+        setLoadingStates((prev) => ({ ...prev, [key]: isLoading }));
+    };
 
     const handleDownload = async (personalOrder) => {
-        setIsLoading(true);
+        const key = `personalOrder_${personalOrder.id}`;
+        setButtonLoading(key, true);
         try {
             const response = await axios.get(
                 `/api/order/download_personal_order?personal_order_id=${personalOrder.id}&filename=${personalOrder.order.title}`,
@@ -57,7 +61,7 @@ const PersonalOrderPageContent = () => {
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error fetching summary:', error);
-            toast.error('Dowloading failed', {
+            toast.error('Downloading failed', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -67,7 +71,7 @@ const PersonalOrderPageContent = () => {
                 theme: 'dark',
             });
         } finally {
-            setIsLoading(false);
+            setButtonLoading(key, false);
         }
     };
 
@@ -77,7 +81,7 @@ const PersonalOrderPageContent = () => {
                 <h1 className="text-2xl px-3 font-base font mb-2 text-white">
                     Personal orders
                 </h1>
-                <div className="bg-[#222224] p-8 rounded-3xl shadow-base mt-2 border border-1 border-gray-600">
+                <div className="bg-[#222224] p-8 rounded-3xl shadow-base mt-2 border border-1 border-gray-600 space-y-4">
                     {loading && <Loading />}
                     {orders.length === 0 && !loading ? (
                         <p className="text-gray-400 text-center text-sm">
@@ -103,10 +107,23 @@ const PersonalOrderPageContent = () => {
                                         onClick={() =>
                                             handleDownload(personalOrder)
                                         }
-                                        className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2"
+                                        disabled={
+                                            loadingStates[
+                                                `personalOrder_${personalOrder.id}`
+                                            ]
+                                        }
+                                        className={`px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
+                                            loadingStates[
+                                                `personalOrder_${personalOrder.id}`
+                                            ]
+                                                ? 'opacity-50 cursor-not-allowed'
+                                                : ''
+                                        }`}
                                         aria-label={`Download order ${personalOrder.order.title}`}
                                     >
-                                        {isLoading ? (
+                                        {loadingStates[
+                                            `personalOrder_${personalOrder.id}`
+                                        ] ? (
                                             <span>Loading...</span>
                                         ) : (
                                             <>

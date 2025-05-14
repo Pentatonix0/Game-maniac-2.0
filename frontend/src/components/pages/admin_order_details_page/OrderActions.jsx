@@ -18,7 +18,7 @@ const OrderActions = ({
     participants,
     order_deadline,
 }) => {
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingStates, setLoadingStates] = useState({}); // Object to track loading state per button
     const [isBiddingModalOpen, setIsBiddingModalOpen] = useState(false);
     const [isOrderDeadlineModalOpen, setIsOrderDeadlineModalOpen] =
         useState(false);
@@ -48,9 +48,7 @@ const OrderActions = ({
                 }
 
                 const data = await response.json();
-                console.log(data);
                 setPersonalOrders(data);
-                setLoading(false);
             } catch (err) {
                 console.log(err);
             }
@@ -58,10 +56,15 @@ const OrderActions = ({
         if (status.code === 205) {
             fetchAllPersonalOrders();
         }
-    }, []);
+    }, [token]);
+
+    const setButtonLoading = (key, isLoading) => {
+        setLoadingStates((prev) => ({ ...prev, [key]: isLoading }));
+    };
 
     const handleDownloadPersonalOrder = async (personalOrder) => {
-        setIsLoading(true);
+        const key = `personalOrder_${personalOrder.id}`;
+        setButtonLoading(key, true);
         try {
             const response = await axios.get(
                 `/api/order/download_personal_order?personal_order_id=${personalOrder.id}&filename=${personalOrder.order.title}_${personalOrder.user.company}`,
@@ -81,8 +84,8 @@ const OrderActions = ({
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('Error fetching summary:', error);
-            toast.error('Dowloading failed', {
+            console.error('Error downloading personal order:', error);
+            toast.error('Downloading failed', {
                 position: 'top-right',
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -92,7 +95,7 @@ const OrderActions = ({
                 theme: 'dark',
             });
         } finally {
-            setIsLoading(false);
+            setButtonLoading(key, false);
         }
     };
 
@@ -136,8 +139,9 @@ const OrderActions = ({
         }
     };
 
-    const handleRequestSummary = async () => {
-        setIsLoading(true);
+    const handleRequestSummary = async (action) => {
+        const key = action; // Use action as the key (e.g., 'summary' or 'allPersonalOrders')
+        setButtonLoading(key, true);
         try {
             const response = await axios.get(
                 `/api/order/get_current_order_state?order_id=${orderId}`,
@@ -151,7 +155,10 @@ const OrderActions = ({
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'summary.xlsx';
+            link.download =
+                action === 'summary'
+                    ? 'summary.xlsx'
+                    : 'all_personal_orders.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -168,7 +175,7 @@ const OrderActions = ({
                 theme: 'dark',
             });
         } finally {
-            setIsLoading(false);
+            setButtonLoading(key, false);
         }
     };
 
@@ -395,7 +402,6 @@ const OrderActions = ({
                     draggable: true,
                     theme: 'dark',
                 });
-                // setSelectedFile(null);
                 document.querySelector('input[type="file"]').value = '';
             }
         } catch (error) {
@@ -449,7 +455,6 @@ const OrderActions = ({
     };
 
     const openParticipantDeadlineModal = (participantId) => {
-        console.log(participantId);
         setSelectedParticipantId(participantId);
         setIsParticipantDeadlineModalOpen(true);
     };
@@ -515,7 +520,7 @@ const OrderActions = ({
                                         <th className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
                                             ID поставщика
                                         </th>
-                                        <th className="text-base font-base text-white px-4 py-2 border-b  border-r">
+                                        <th className="text-base font-base text-white px-4 py-2 border-b border-r">
                                             Участвует
                                         </th>
                                         <th className="text-base font-base text-white px-4 py-2 border-b">
@@ -525,48 +530,49 @@ const OrderActions = ({
                                 </thead>
                                 <tbody>
                                     {participants &&
-                                        participants.map((participant) => {
-                                            return (
-                                                <tr key={participant.user.id}>
-                                                    <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                        {
-                                                            participant.user
-                                                                .company
-                                                        }
-                                                    </td>
-                                                    <td className="px-4 py-2 border-b border-r text-center">
-                                                        {
-                                                            statusDictionary[
-                                                                participant
-                                                                    .status.code
-                                                            ].emoji
-                                                        }
-                                                    </td>
-                                                    <td className=" px-4 py-2 border-b ">
-                                                        <div className="flex justify-center">
-                                                            {participant.status
-                                                                .code ===
-                                                            111 ? (
-                                                                <button
-                                                                    onClick={() =>
-                                                                        openParticipantDeadlineModal(
-                                                                            participant.id
-                                                                        )
-                                                                    }
-                                                                    className="h-8 bg-gradient-to-r from-green-600 to-green-500 text-white text-sm px-3 py-1 rounded-lg hover:from-green-700 hover:to-green-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(74,222,128,0.6)] focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                                                                >
-                                                                    Вернуть
-                                                                </button>
-                                                            ) : (
-                                                                <button className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200">
-                                                                    Отстранить
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        participants.map((participant) => (
+                                            <tr key={participant.user.id}>
+                                                <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
+                                                    {participant.user.company}
+                                                </td>
+                                                <td className="px-4 py-2 border-b border-r text-center">
+                                                    {
+                                                        statusDictionary[
+                                                            participant.status
+                                                                .code
+                                                        ].emoji
+                                                    }
+                                                </td>
+                                                <td className="px-4 py-2 border-b">
+                                                    <div className="flex justify-center">
+                                                        {participant.status
+                                                            .code === 111 ? (
+                                                            <button
+                                                                onClick={() =>
+                                                                    openParticipantDeadlineModal(
+                                                                        participant.id
+                                                                    )
+                                                                }
+                                                                className="h-8 bg-gradient-to-r from-green-600 to-green-500 text-white text-sm px-3 py-1 rounded-lg hover:from-green-700 hover:to-green-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(74,222,128,0.6)] focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                                            >
+                                                                Вернуть
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() =>
+                                                                    openParticipantDeadlineModal(
+                                                                        participant.id
+                                                                    )
+                                                                }
+                                                                className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                                            >
+                                                                Отстранить
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         </div>
@@ -581,16 +587,16 @@ const OrderActions = ({
                         </div>
                         <div className="mt-6 flex justify-start gap-4">
                             <button
-                                onClick={handleRequestSummary}
-                                disabled={isLoading}
+                                onClick={() => handleRequestSummary('summary')}
+                                disabled={loadingStates['summary']}
                                 className={`w-48 h-12 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(37,99,235,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
-                                    isLoading
+                                    loadingStates['summary']
                                         ? 'opacity-50 cursor-not-allowed'
                                         : ''
                                 }`}
                                 aria-label="Скачать сводку заказа"
                             >
-                                {isLoading ? (
+                                {loadingStates['summary'] ? (
                                     <span>Загрузка...</span>
                                 ) : (
                                     <>
@@ -611,7 +617,7 @@ const OrderActions = ({
                         <div className="flex justify-end mt-6">
                             <button
                                 onClick={handleDeleteOrder}
-                                className="w-30 h-8 bg-red-600 text-white text-xs px-6  rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                className="w-30 h-8 bg-red-600 text-white text-xs px-6 rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
                             >
                                 Удалить заказ
                             </button>
@@ -660,67 +666,61 @@ const OrderActions = ({
                                 </thead>
                                 <tbody>
                                     {participants &&
-                                        participants.map((participant) => {
-                                            return (
-                                                participant.status.code !=
-                                                    111 && (
-                                                    <tr
-                                                        key={
-                                                            participant.user.id
+                                        participants.map((participant) =>
+                                            participant.status.code !== 111 ? (
+                                                <tr key={participant.user.id}>
+                                                    <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
+                                                        {
+                                                            participant.user
+                                                                .company
                                                         }
-                                                    >
-                                                        <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                            {
-                                                                participant.user
-                                                                    .company
+                                                    </td>
+                                                    <td className="px-4 py-2 border-b text-center border-r border-gray-300">
+                                                        {
+                                                            statusDictionary[
+                                                                participant
+                                                                    .status.code
+                                                            ].emoji
+                                                        }
+                                                    </td>
+                                                    <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
+                                                        {formatRemainingTime(
+                                                            participant.deadline
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-2 border-b">
+                                                        <button
+                                                            onClick={() =>
+                                                                openParticipantDeadlineModal(
+                                                                    participant.id
+                                                                )
                                                             }
-                                                        </td>
-                                                        <td className="px-4 py-2 border-b text-center border-r border-gray-300">
-                                                            {
-                                                                statusDictionary[
-                                                                    participant
-                                                                        .status
-                                                                        .code
-                                                                ].emoji
-                                                            }
-                                                        </td>
-                                                        <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                            {formatRemainingTime(
-                                                                participant.deadline
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-2 border-b">
-                                                            <button
-                                                                onClick={() =>
-                                                                    openParticipantDeadlineModal(
-                                                                        participant.id
-                                                                    )
-                                                                }
-                                                                className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
-                                                            >
-                                                                Изменить
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            );
-                                        })}
+                                                            className="h-8 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm px-3 py-1 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                                        >
+                                                            Изменить
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ) : null
+                                        )}
                                 </tbody>
                             </table>
                         </div>
                         <div className="mt-6 flex flex-col gap-4">
                             <div className="flex justify-start gap-4">
                                 <button
-                                    onClick={handleRequestSummary}
-                                    disabled={isLoading}
+                                    onClick={() =>
+                                        handleRequestSummary('summary')
+                                    }
+                                    disabled={loadingStates['summary']}
                                     className={`w-48 h-12 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(37,99,235,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
-                                        isLoading
+                                        loadingStates['summary']
                                             ? 'opacity-50 cursor-not-allowed'
                                             : ''
                                     }`}
                                     aria-label="Скачать сводку заказа"
                                 >
-                                    {isLoading ? (
+                                    {loadingStates['summary'] ? (
                                         <span>Загрузка...</span>
                                     ) : (
                                         <>
@@ -774,7 +774,7 @@ const OrderActions = ({
                         <div className="flex justify-end mt-6">
                             <button
                                 onClick={handleDeleteOrder}
-                                className="w-30 h-8 bg-red-600 text-white text-xs px-6  rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
+                                className="w-30 h-8 bg-red-600 text-white text-xs px-6 rounded-lg font-base hover:bg-red-700 hover:scale-105 hover:shadow-[0_0_8px_rgba(220,38,38,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200"
                             >
                                 Удалить заказ
                             </button>
@@ -791,7 +791,6 @@ const OrderActions = ({
                                         <th className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
                                             Поставщик
                                         </th>
-
                                         <th className="text-base font-base text-white px-4 py-2 border-b">
                                             Действия
                                         </th>
@@ -799,66 +798,74 @@ const OrderActions = ({
                                 </thead>
                                 <tbody>
                                     {personalOrders &&
-                                        personalOrders.map((personalOrder) => {
-                                            return (
-                                                <tr key={personalOrder.id}>
-                                                    <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
-                                                        {
-                                                            personalOrder.user
-                                                                .company
-                                                        }
-                                                    </td>
-                                                    <td className=" px-4 py-2 border-b ">
-                                                        <div className="flex justify-center">
-                                                            {personalOrder.is_empty ? (
-                                                                <div className="px-4 py-2 w-32 text-white text-sm font-medium rounded-md border border-1 border-red-500">
-                                                                    Заказ пустой
-                                                                </div>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() =>
-                                                                        handleDownloadPersonalOrder(
-                                                                            personalOrder
-                                                                        )
-                                                                    }
-                                                                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2"
-                                                                    aria-label={`Download order ${personalOrder.order.title}`}
-                                                                >
-                                                                    {isLoading ? (
-                                                                        <span>
-                                                                            Загрузка...
-                                                                        </span>
-                                                                    ) : (
-                                                                        <>
-                                                                            <span>
-                                                                                Скачать
-                                                                                заказ
-                                                                            </span>
-                                                                        </>
-                                                                    )}
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        personalOrders.map((personalOrder) => (
+                                            <tr key={personalOrder.id}>
+                                                <td className="text-base font-base text-white px-4 py-2 border-b border-r border-gray-300">
+                                                    {personalOrder.user.company}
+                                                </td>
+                                                <td className="px-4 py-2 border-b">
+                                                    <div className="flex justify-center">
+                                                        {personalOrder.is_empty ? (
+                                                            <div className="px-4 py-2 w-32 text-white text-sm font-medium rounded-md border border-1 border-red-500">
+                                                                Заказ пустой
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDownloadPersonalOrder(
+                                                                        personalOrder
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    loadingStates[
+                                                                        `personalOrder_${personalOrder.id}`
+                                                                    ]
+                                                                }
+                                                                className={`px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-sm font-medium rounded-md hover:from-orange-700 hover:to-orange-600 hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-101 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
+                                                                    loadingStates[
+                                                                        `personalOrder_${personalOrder.id}`
+                                                                    ]
+                                                                        ? 'opacity-50 cursor-not-allowed'
+                                                                        : ''
+                                                                }`}
+                                                                aria-label={`Download order ${personalOrder.order.title}`}
+                                                            >
+                                                                {loadingStates[
+                                                                    `personalOrder_${personalOrder.id}`
+                                                                ] ? (
+                                                                    <span>
+                                                                        Загрузка...
+                                                                    </span>
+                                                                ) : (
+                                                                    <span>
+                                                                        Скачать
+                                                                        заказ
+                                                                    </span>
+                                                                )}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
                                 </tbody>
                             </table>
                         </div>
                         <div className="mt-6 flex flex-col gap-4">
                             <div className="flex justify-start gap-4">
                                 <button
-                                    onClick={handleRequestSummary}
-                                    disabled={isLoading}
+                                    onClick={() =>
+                                        handleRequestSummary('summary')
+                                    }
+                                    disabled={loadingStates['summary']}
                                     className={`w-48 h-12 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-blue-700 hover:to-blue-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(37,99,235,0.6)] focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
-                                        isLoading
+                                        loadingStates['summary']
                                             ? 'opacity-50 cursor-not-allowed'
                                             : ''
                                     }`}
                                     aria-label="Скачать сводку заказа"
                                 >
-                                    {isLoading ? (
+                                    {loadingStates['summary'] ? (
                                         <span>Загрузка...</span>
                                     ) : (
                                         <>
@@ -870,16 +877,22 @@ const OrderActions = ({
                                     )}
                                 </button>
                                 <button
-                                    onClick={handleRequestSummary}
-                                    disabled={isLoading}
+                                    onClick={() =>
+                                        handleRequestSummary(
+                                            'allPersonalOrders'
+                                        )
+                                    }
+                                    disabled={
+                                        loadingStates['allPersonalOrders']
+                                    }
                                     className={`w-48 h-12 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-base font-semibold px-6 py-3 rounded-lg hover:from-orange-700 hover:to-orange-600 hover:scale-105 hover:shadow-[0_0_8px_rgba(249,115,22,0.6)] focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#39393A] transition-all duration-200 flex items-center justify-center space-x-2 ${
-                                        isLoading
+                                        loadingStates['allPersonalOrders']
                                             ? 'opacity-50 cursor-not-allowed'
                                             : ''
                                     }`}
-                                    aria-label="Скачать сводку заказа"
+                                    aria-label="Скачать все персональные заказы"
                                 >
-                                    {isLoading ? (
+                                    {loadingStates['allPersonalOrders'] ? (
                                         <span>Загрузка...</span>
                                     ) : (
                                         <>

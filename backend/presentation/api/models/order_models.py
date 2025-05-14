@@ -41,11 +41,9 @@ class OrderDTO:
             "status": fields.Nested(status_model),
             "publishing_date": fields.DateTime(),
             "permitted_providers": fields.List(fields.Integer()),
-            "participating_providers": fields.List(fields.Integer()),
             "order_items": fields.List(fields.Nested(order_item_model))
         }
     )
-
 
     order_preview_model = namespace.model(
         "OrderPreview",
@@ -57,6 +55,7 @@ class OrderDTO:
             "deadline": fields.DateTime()
         }
     )
+
     order_participant_preview_model = namespace.model(
         "UserOrder",
         {
@@ -68,16 +67,16 @@ class OrderDTO:
             "deadline": fields.DateTime()
         }
     )
+
     order_participant_status_model = namespace.model(
         "ParticipantStatus",
         {
             "id": fields.Integer(),
             "user_id": fields.Integer(),
             "order_id": fields.Integer(),
-            "user":fields.Nested(UserDTO.user_model),
+            "user": fields.Nested(UserDTO.user_model),
             "status": fields.Nested(status_model),
             "deadline": fields.DateTime()
-
 
         }
     )
@@ -90,6 +89,7 @@ class OrderDTO:
             "comment": fields.String()
         }
     )
+
     order_participant_last_price_model = namespace.model(
         "LastPrice",
         {
@@ -118,7 +118,6 @@ class OrderDTO:
             "status": fields.Nested(status_model),
             "publishing_date": fields.DateTime(),
             "permitted_providers": fields.List(fields.Integer()),
-            "participating_providers": fields.List(fields.Integer()),
             "participants": fields.List(fields.Nested(order_participant_status_model)),
             "order_items": fields.List(fields.Nested(order_item_model)),
             "deadline": fields.DateTime()
@@ -129,7 +128,7 @@ class OrderDTO:
         "PersonalOrder",
         {
             "id": fields.Integer(),
-            "user":fields.Nested(UserDTO.user_model),
+            "user": fields.Nested(UserDTO.user_model),
             "order": fields.Nested(order_preview_model),
             "is_empty": fields.Boolean()
         }

@@ -70,11 +70,21 @@ class GetAdminOrderContent(Resource):
 
 @order_ns.route('/order/<int:order_id>')
 class GetOrderContent(Resource):
-    @order_ns.marshal_with(order_participant_model)
     @jwt_required()
     def get(self, order_id):
-        username = get_jwt_identity()
-        return OrderService.get_user_order_content(username, order_id)
+        try:
+            username = get_jwt_identity()
+            order = OrderService.get_user_order_content(username, order_id)
+            if order is None:
+                return {}, 200
+            return order_ns.marshal(order, order_participant_model), 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
 
 
 @order_ns.route('/update_order_meta')

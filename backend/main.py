@@ -54,7 +54,7 @@ with app.app_context():
         id='Scheduled Task',
         func=scheduled_task,
         trigger='interval',
-        seconds=3000
+        seconds=30
     )
     scheduler.start()
 

@@ -11,7 +11,7 @@ import Loading from '../components/common/universal_components/Loading';
 
 const OrderDetail = () => {
     const { orderId } = useParams();
-    const [order, setOrder] = useState(null);
+    const [order, setOrder] = useState({});
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [comments, setComments] = useState({});
@@ -44,6 +44,8 @@ const OrderDetail = () => {
             } finally {
                 setLoading(false);
             }
+            console.order;
+            console.log(order == {});
         };
 
         fetchOrderData();
@@ -121,7 +123,7 @@ const OrderDetail = () => {
         }
     };
 
-    if (!loading && order.id == null) {
+    if (!loading && Object.keys(order).length === 0) {
         return (
             <div className="min-h-screen bg-[#18181A] py-12 flex justify-center">
                 <div className="flex-col justify-center items-center h-48 bg-[#222224] p-8 rounded-2xl border border-1 border-gray-600 shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)] max-w-md text-center">
