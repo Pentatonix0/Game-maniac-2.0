@@ -16,7 +16,6 @@ class UserService:
     @staticmethod
     def get_users_company_names(order_id):
         try:
-            print(order_id)
             companies = UserDBService.get_users_company_names_by_order_id(order_id)
             response_object = {
                 'status': 'success',
@@ -60,3 +59,7 @@ class UserService:
                 'message': 'try again'
             }
             return response_object, 400
+
+    @staticmethod
+    def change_password_admin(user_id, new_password):
+        UserDBService.set_password(user_id, new_password)

@@ -11,23 +11,23 @@ from presentation.api.controllers.auth_controller import auth_ns
 from presentation.api.controllers.user_controller import users_ns
 from presentation.api.controllers.excel_controller import excel_ns
 from application.services.db_service import PrimaryInitializationDBService
-from config import DevConfig as Config
-from threading import Lock
+from config import ProdConfig
 
-init_lock = Lock()
 
 app = Flask(__name__)
-app.config.from_object(Config)
-app.config['JSON_AS_ASCII'] = False
-
+app.config.from_object(ProdConfig)
 CORS(app, origins="http://localhost:5173")
 
 db.init_app(app)
 with app.app_context():
     db.create_all()
     if not PrimaryInitializationDBService.is_initialized():
+        username = app.config['ADMIN_USERNAME']
+        email = app.config['ADMIN_EMAIL']
+        company = app.config['ADMIN_COMPANY']
+        password = app.config['ADMIN_PASSWORD']
         db.create_all()
-        PrimaryInitializationDBService.init()
+        PrimaryInitializationDBService.init(username, email, company, password)
         PrimaryInitializationDBService.initialization_done()
 
 migrate = Migrate(app, db)

@@ -8,6 +8,10 @@ class Config:
     SECRET_KEY = config('SECRET_KEY')
     SQLALCHEMY_TRACK_MODIFICATIONS = config(
         'SQLALCHEMY_TRACK_MODIFICATIONS', cast=bool)
+    ADMIN_USERNAME = config('ADMIN_USERNAME')
+    ADMIN_EMAIL = config('ADMIN_EMAIL')
+    ADMIN_COMPANY = config('ADMIN_COMPANY')
+    ADMIN_PASSWORD = config('ADMIN_PASSWORD')
 
 
 class DevConfig(Config):
@@ -18,11 +22,14 @@ class DevConfig(Config):
 
 
 class ProdConfig(Config):
-    pass
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, 'dev.db') #prod.db
+    DEBUG = False
+    SQLALCHEMY_ECHO = False
+    JSON_AS_ASCII = False
 
 
 class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + \
-        os.path.join(BASE_DIR, 'test.db')
+                              os.path.join(BASE_DIR, 'test.db')
     SQLALCHEMY_ECHO = False
     TESTING = True

@@ -4,6 +4,7 @@ import CommentModal from './CommentModal';
 
 const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
     const inputRefs = useRef([]);
+    const status = data.status;
     const [activeCommentItem, setActiveCommentItem] = useState(null);
     const [showCommentModal, setShowCommentModal] = useState(false);
     const [comments, setComments] = useState(() => {
@@ -18,10 +19,35 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
         }
         return initialComments;
     });
+    const [prices, setPrices] = useState(() => {
+        const initialPrices = {};
+        if (data.last_prices) {
+            data.last_prices.forEach((item) => {
+                const itemId = item.price?.order_item?.id || item.id;
+                initialPrices[itemId] = item.price?.price
+                    ? parseFloat(item.price?.price)
+                    : '';
+            });
+        }
+        return initialPrices;
+    });
 
     useEffect(() => {
         onCommentsChange(comments);
     }, [comments, onCommentsChange]);
+
+    useEffect(() => {
+        const newPrices = {};
+        if (data.last_prices) {
+            data.last_prices.forEach((item) => {
+                const itemId = item.price?.order_item?.id || item.id;
+                newPrices[itemId] = item.price?.price
+                    ? parseFloat(item.price?.price)
+                    : '';
+            });
+            setPrices((prev) => ({ ...prev, ...newPrices }));
+        }
+    }, [data.last_prices]);
 
     const handleKeyDown = (event, index) => {
         if (event.key === 'ArrowDown' && index < data.last_prices.length - 1) {
@@ -56,10 +82,25 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
         inputRefs.current[0]?.focus();
     }, []);
 
-    const renderTableRow = (item, index, isEditable = false) => {
+    const handlePriceChange = (itemId, value) => {
+        const parsedValue = value === '' ? '' : parseFloat(value) || '';
+        setPrices((prev) => ({
+            ...prev,
+            [itemId]: parsedValue,
+        }));
+    };
+
+    const renderTableRow = (item, index, status) => {
         const itemId = item.price?.order_item?.id || index;
         const hasComment = !!comments[itemId];
         const isBestPrice = item.is_the_best_price;
+        const isEditable =
+            status.code === 100 ||
+            status.code === 101 ||
+            status.code === 103 ||
+            status.code === 104;
+        const isShowRecommendedPrice =
+            status.code === 103 || status.code === 104;
 
         // Условные классы для фона ячейки Price при isEditable
         const priceCellBgClass = isEditable
@@ -69,7 +110,7 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                 ? 'bg-[#FAED27]/50'
                 : ''
             : '';
-
+        console.log(item);
         return (
             <tr key={index} className="animate-fade-in">
                 <td className="border p-2 text-gray-200 max-w-[512px]">
@@ -99,27 +140,34 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                                     },
                                 }}
                                 labelClassName="text-gray-800"
-                                defaultValue={
-                                    item.price?.price
-                                        ? parseFloat(item.price?.price)
-                                        : null
+                                value={
+                                    prices[itemId] !== null
+                                        ? prices[itemId]
+                                        : ''
+                                }
+                                onChange={(e) =>
+                                    handlePriceChange(itemId, e.target.value)
                                 }
                                 onKeyDown={(event) =>
                                     handleKeyDown(event, index)
                                 }
                                 ref={(el) => (inputRefs.current[index] = el)}
                             />
-                            {isBestPrice ? (
-                                <div className="flex justify-center text-white text-xs">
-                                    Your price is the best!
-                                </div>
-                            ) : (
-                                item.price.order_item.recommended_price && (
+                            {isShowRecommendedPrice &&
+                                (isBestPrice ? (
+                                    <div className="flex justify-center text-white text-xs">
+                                        Your price is the best!
+                                    </div>
+                                ) : item.price.order_item.recommended_price !==
+                                  null ? (
                                     <div className="flex justify-center text-white text-xs">
                                         {`Recommended price: ${item.price.order_item.recommended_price}`}
                                     </div>
-                                )
-                            )}
+                                ) : (
+                                    <div className="flex justify-center text-white text-xs">
+                                        No one have
+                                    </div>
+                                ))}
                         </div>
                     ) : (
                         <div className="text-gray-200">
@@ -173,9 +221,6 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
         case 104:
             return (
                 <div className="animate-slide-in">
-                    <h3 className="text-xl font-medium text-[#FFFFFF] mb-4">
-                        Products from the order
-                    </h3>
                     <table className="min-w-full border-collapse table-fixed">
                         <thead>
                             <tr>
@@ -195,7 +240,7 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                         </thead>
                         <tbody>
                             {data.last_prices.map((last_price, index) =>
-                                renderTableRow(last_price, index, true)
+                                renderTableRow(last_price, index, status)
                             )}
                         </tbody>
                     </table>
@@ -236,7 +281,7 @@ const OrderDetailsTable = ({ data, register, errors, onCommentsChange }) => {
                         </thead>
                         <tbody>
                             {data.last_prices.map((last_price, index) =>
-                                renderTableRow(last_price, index)
+                                renderTableRow(last_price, index, status)
                             )}
                         </tbody>
                     </table>

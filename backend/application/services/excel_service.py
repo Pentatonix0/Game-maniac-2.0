@@ -51,10 +51,8 @@ class ExcelService:
             min_prices = []
             for idx, row in df.iterrows():
                 prices = [row[col] for col in price_columns if not pd.isna(row[col]) and row[col] != 0]
-                print(prices)
                 min_price = min(prices) if prices else None
                 min_prices.append(min_price)
-                print(min_price, min_prices)
 
 
             # Определяем индексы колонок цен в Excel (учитывая, что первая строка - заголовки)
@@ -95,10 +93,21 @@ class ExcelService:
     def make_person_order_excel(summary):
         df = pd.DataFrame(summary)
         df['price'] = df['price'].astype(float)
-
-
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='Order')
         output.seek(0)
         return output
+
+    @staticmethod
+    def make_person_orders_excel(summary):
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            for company, items in summary.items():
+                if len(items) > 0:
+                    df = pd.DataFrame(items)
+                    df['price'] = df['price'].astype(float)
+                    df.to_excel(writer, index=False, sheet_name=company)
+        output.seek(0)
+        return output
+

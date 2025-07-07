@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { FiInfo, FiAlertCircle } from 'react-icons/fi';
+import { FiInfo, FiAlertCircle, FiDownload, FiUpload } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import OrderDetailsTable from '../components/pages/order_details_page/OrderDetailsTable';
@@ -15,6 +15,7 @@ const OrderDetail = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [comments, setComments] = useState({});
+    const [showEditor, setShowEditor] = useState(false);
 
     const {
         register,
@@ -123,6 +124,32 @@ const OrderDetail = () => {
         }
     };
 
+    const handleDownloadOrder = () => {
+        // Implement download order logic here
+        toast.info('Download order functionality to be implemented', {
+            position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: 'dark',
+        });
+    };
+
+    const handleUploadOrder = () => {
+        // Implement upload order logic here
+        toast.info('Upload order functionality to be implemented', {
+            position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: 'dark',
+        });
+    };
+
     if (!loading && Object.keys(order).length === 0) {
         return (
             <div className="min-h-screen bg-[#18181A] py-12 flex justify-center">
@@ -143,10 +170,10 @@ const OrderDetail = () => {
     return (
         <div className="min-h-screen bg-[#18181A] flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-5xl">
-                <h1 className="text-3xl font-bold break-words text-white mb-6">
+                <h1 className="text-3xl font-bold break-words text-white mb-4">
                     {order && !loading ? order.order.title : 'Loading Order...'}
                 </h1>
-                <div className="bg-[#222224] p-8 rounded-2xl shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)]">
+                <div className="bg-[#222224] p-8 rounded-2xl border border-1 border-gray-600 shadow-lg shadow-[0px_0px_8px_0px_rgba(255,255,255,0.1)]">
                     {loading ? (
                         <div className="flex items-center justify-center py-12">
                             <Loading />
@@ -157,32 +184,94 @@ const OrderDetail = () => {
                                 onSubmit={handleSubmit(onSubmit)}
                                 className="space-y-6"
                             >
-                                <div className="relative bg-gradient-to-r from-orange-900/20 to-gray-800/80 p-6 rounded-xl border border-orange-600/30 shadow-md animate-fade-in">
-                                    <div className="flex items-start">
-                                        <FiInfo className="text-orange-500 text-2xl mr-3 mt-1 flex-shrink-0" />
+                                {order &&
+                                    !loading &&
+                                    order.order.description && (
                                         <div>
-                                            <h2 className="text-xl font-semibold text-white mb-2">
-                                                How to Proceed
-                                            </h2>
-                                            <p className="text-sm text-gray-300 leading-relaxed">
-                                                Review the order details in the
-                                                table below. Update the prices
-                                                and add comments for each item
-                                                as needed. When ready, click the{' '}
-                                                <span className="text-orange-400 font-medium">
-                                                    "Submit"
-                                                </span>{' '}
-                                                button to save your changes.
+                                            <h3 className="text-xl font-medium text-[#FFFFFF] mb-4">
+                                                Description
+                                            </h3>
+                                            <p className="text-gray-300 text-base mb-6 max-w-full break-words line-clamp-3">
+                                                {order.order.description}
                                             </p>
                                         </div>
-                                    </div>
+                                    )}
+                                {order.status.code !== 102 &&
+                                    order.status.code !== 105 &&
+                                    order.status.code !== 106 && (
+                                        <div className="relative bg-gradient-to-r from-orange-900/20 to-gray-800/80 p-6 rounded-xl border border-orange-600/30 shadow-md animate-fade-in">
+                                            <div className="flex items-start">
+                                                <FiInfo className="text-orange-500 text-2xl mr-3 mt-1 flex-shrink-0" />
+                                                <div>
+                                                    <h2 className="text-xl font-semibold text-white mb-2">
+                                                        How to Proceed
+                                                    </h2>
+                                                    <p className="text-sm text-gray-300 leading-relaxed">
+                                                        Review the order details
+                                                        in the table below.
+                                                        Update the prices (use
+                                                        whole numbers or
+                                                        decimals with a dot,
+                                                        e.g., 10 or 10.99) and
+                                                        add comments for each
+                                                        item as needed. When
+                                                        ready, click the{' '}
+                                                        <span className="text-orange-400 font-medium">
+                                                            "Submit"
+                                                        </span>{' '}
+                                                        button to save your
+                                                        changes.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                <h3 className="text-xl font-medium text-[#FFFFFF] mb-4">
+                                    Products from the order
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditor(!showEditor)}
+                                    className="mb-4 px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-base font-medium rounded-md hover:from-blue-700 hover:to-blue-600 hover:shadow-[0_0_6px_rgba(59,130,246,0.6)] transition-all duration-200"
+                                >
+                                    {showEditor
+                                        ? 'Hide Online Editor'
+                                        : 'Show Online Editor'}
+                                </button>
+                                {showEditor && (
+                                    <OrderDetailsTable
+                                        data={order}
+                                        register={register}
+                                        errors={errors}
+                                        onCommentsChange={handleCommentsChange}
+                                    />
+                                )}
+                                <div>
+                                    <h3 className="text-xl font-medium text-[#FFFFFF] mb-4">
+                                        Dowload the order
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={handleDownloadOrder}
+                                        className="flex items-center px-6 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white text-base font-medium rounded-md hover:from-green-700 hover:to-green-600 hover:shadow-[0_0_8px_rgba(34,197,94,0.7)] hover:scale-105 focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-300"
+                                    >
+                                        <FiDownload className="mr-2 text-lg" />
+                                        Download
+                                    </button>
                                 </div>
-                                <OrderDetailsTable
-                                    data={order}
-                                    register={register}
-                                    errors={errors}
-                                    onCommentsChange={handleCommentsChange}
-                                />
+                                <h3 className="text-xl font-medium text-[#FFFFFF] mb-2">
+                                    Upload prices
+                                </h3>
+                                <div className="flex space-x-4 bg-[#2a2a2c] p-4 rounded-lg border border-gray-600 shadow-md">
+                                    <button
+                                        type="button"
+                                        onClick={handleUploadOrder}
+                                        className="relative flex items-center px-6 py-3 bg-gradient-to-r from-orange-900/20 to-gray-800/80 text-white text-sm font-medium rounded-xl border border-orange-600/30 shadow-md animate-fade-in hover:from-orange-800/30 hover:to-gray-700/80 hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] transition-all duration-300"
+                                    >
+                                        <FiUpload className="mr-2 text-base" />
+                                        Select file
+                                    </button>
+                                </div>
                                 {order.status.code !== 102 &&
                                 order.status.code !== 105 &&
                                 order.status.code !== 106 ? (
@@ -190,14 +279,14 @@ const OrderDetail = () => {
                                         type="submit"
                                         disabled={isSubmitting}
                                         className={`w-full sm:w-auto px-9 py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white 
-                                                text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
-                                                hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105 focus:ring-2 
-                                                focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] 
-                                                transition-all duration-200 ${
-                                                    isSubmitting
-                                                        ? 'opacity-50 cursor-not-allowed'
-                                                        : ''
-                                                }`}
+                                            text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
+                                            hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105 focus:ring-2 
+                                            focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-[#222224] 
+                                            transition-all duration-200 ${
+                                                isSubmitting
+                                                    ? 'opacity-50 cursor-not-allowed'
+                                                    : ''
+                                            }`}
                                         aria-label="Submit order changes"
                                     >
                                         {isSubmitting
@@ -208,9 +297,9 @@ const OrderDetail = () => {
                                     <button
                                         type="button"
                                         className={`w-full sm:w-auto bg-gradient-to-r from-orange-600 to-orange-500 text-white 
-                                                text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
-                                                hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105
-                                                transition-all duration-200`}
+                                            text-lg font-medium rounded-md hover:from-orange-700 hover:to-orange-600 
+                                            hover:shadow-[0_0_6px_rgba(249,115,22,0.6)] hover:scale-105
+                                            transition-all duration-200`}
                                         aria-label="Submit order changes"
                                     >
                                         <Link
